@@ -2,7 +2,7 @@ package hippo.example;
 
 import hippo.client.DefaultScriptingSession;
 import hippo.client.ScriptingRoot;
-import hippo.client.ScriptingSessionService;
+import hippo.client.ScriptingSessionFactory;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -17,9 +17,13 @@ import org.mozilla.javascript.ScriptableObject;
 public class Client {
     public static void main(String[] args) throws IOException, NotBoundException, IllegalAccessException,
             InstantiationException, InvocationTargetException {
-        Registry registry = LocateRegistry.getRegistry("localhost");
+        String server = "localhost";
+        if (args.length == 1) {
+            server = args[0];
+        }
+        Registry registry = LocateRegistry.getRegistry(server);
 
-        ScriptingSessionService service = (ScriptingSessionService) registry.lookup("ScriptingSessionRegistry");
+        ScriptingSessionFactory service = (ScriptingSessionFactory) registry.lookup("Counter");
 
         DefaultScriptingSession session = new DefaultScriptingSession(service);
         session.start();
@@ -45,7 +49,7 @@ public class Client {
 
             long start = System.currentTimeMillis();
 
-            cx.evaluateString(root, "var c = new LocalCounter(0);\n" + "for (i=0; i < 10000; i++) {\n" + "  c.inc();\n"
+            cx.evaluateString(root, "var c = new Counter(0);\n" + "for (i=0; i < 10000; i++) {\n" + "  c.inc();\n"
                     + "}\n" + "\n" + "Packages.java.lang.System.out.println(c.get());", "<>", -1, null);
             System.out.println(System.currentTimeMillis() - start);
         } finally {

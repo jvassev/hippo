@@ -1,7 +1,7 @@
 package hippo.server;
 
-import hippo.client.LocalProxy;
 import hippo.client.Proxy;
+import hippo.client.ScriptingSession;
 import hippo.client.impl.Util;
 
 import java.io.Serializable;
@@ -14,7 +14,7 @@ import java.util.UUID;
 import org.apache.commons.collections.BidiMap;
 import org.apache.commons.collections.bidimap.DualHashBidiMap;
 
-public abstract class LocalScriptSession {
+public abstract class LocalScriptSession implements ScriptingSession {
 
     private BidiMap typesToClasses;
 
@@ -39,26 +39,26 @@ public abstract class LocalScriptSession {
     }
 
     public Proxy newObject(final String name, Object[] args) {
-        LocalProxy proxy = makeProxy(name);
+        Proxy proxy = makeProxy(name);
         Object instace = newInstaceReal(name, args);
         registerProxy(proxy, instace);
 
         return proxy;
     }
 
-    private void registerProxy(LocalProxy proxy, Object instace) {
+    private void registerProxy(Proxy proxy, Object instace) {
         objects.put(proxy.getId(), instace);
     }
 
-    private LocalProxy makeProxy(final String name) {
-        LocalProxy proxy = new LocalProxy();
+    private Proxy makeProxy(final String name) {
+        Proxy proxy = new Proxy();
         proxy.setId(UUID.randomUUID().toString());
         proxy.setType(name);
         return proxy;
     }
 
     public Object invoke(Proxy self, String name, Object[] args) {
-        LocalProxy proxy = (LocalProxy) self;
+        Proxy proxy = (Proxy) self;
         Object instance = getRealObject(proxy);
         unProxy(args);
         Object res = invokeReal(instance, name, args);
@@ -85,14 +85,14 @@ public abstract class LocalScriptSession {
                     throw new IllegalStateException("cannot proxy or serialize " + res);
                 }
             } else {
-                LocalProxy resProxy = makeProxy(type);
+                Proxy resProxy = makeProxy(type);
                 registerProxy(resProxy, res);
                 return resProxy;
             }
         }
     }
 
-    private Object getRealObject(LocalProxy proxy) {
+    private Object getRealObject(Proxy proxy) {
         Object object = objects.get(proxy.getId());
         if (object == null) {
             throw new IllegalArgumentException("cannot find object behind " + proxy);
@@ -104,8 +104,8 @@ public abstract class LocalScriptSession {
     private void unProxy(Object[] args) {
         for (int i = 0; i < args.length; i++) {
             Object o = args[i];
-            if (o instanceof LocalProxy) {
-                LocalProxy proxy = (LocalProxy) o;
+            if (o instanceof Proxy) {
+                Proxy proxy = (Proxy) o;
                 args[i] = getRealObject(proxy);
             }
         }

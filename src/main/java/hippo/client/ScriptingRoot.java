@@ -12,14 +12,14 @@ public class ScriptingRoot extends ScriptableObject {
 
     private static final long serialVersionUID = 1620417396498909133L;
     private Set<String> knownTypes;
-    private final ScriptingSession session;
+    private final DefaultScriptingSession session;
 
     public void registerType(String type) {
         knownTypes.add(type);
         ScriptableObject.putProperty(this, type, new Constructor(session, type));
     }
 
-    public ScriptingRoot(ScriptingSession session) throws RemoteException {
+    public ScriptingRoot(DefaultScriptingSession session) throws RemoteException {
         knownTypes = new HashSet<String>();
         this.session = session;
         for (String type : session.getTypes()) {

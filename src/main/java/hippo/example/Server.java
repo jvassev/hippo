@@ -1,11 +1,12 @@
 package hippo.example;
 
-import hippo.client.ScriptingSessionService;
+import hippo.client.ScriptingSessionFactory;
 import hippo.server.DefaultScriptingSessionService;
 import hippo.server.LocalScriptSession;
 
 import java.rmi.AccessException;
-import java.rmi.RMISecurityManager;
+import java.rmi.AlreadyBoundException;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -13,25 +14,26 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.Arrays;
 
 public class Server {
-    public static void main(String[] args) throws AccessException, RemoteException {
-        if (System.getSecurityManager() == null) {
-            System.setSecurityManager(new RMISecurityManager() {
-                @Override
-                public void checkConnect(String host, int port) {
-
-                }
-
-                @Override
-                public void checkConnect(String host, int port, Object context) {
-                }
-            });
+    public static void main(String[] args) throws AccessException, RemoteException, AlreadyBoundException {
+        String server = "localhost";
+        if (args.length == 1) {
+            server = args[0];
         }
-        ScriptingSessionService service = new DefaultScriptingSessionService() {
+        final Registry registry = LocateRegistry.getRegistry(server);
+        
+        
+        final String name = "Counter";
+        ScriptingSessionFactory service = new DefaultScriptingSessionService(registry) {
             @Override
             protected LocalScriptSession makeSession() {
                 return new LocalScriptSession() {
                     {
                         registerType("Counter", Counter.class);
+                    }
+
+                    @Override
+                    public void start() throws RemoteException {
+
                     }
 
                     @Override
@@ -66,9 +68,22 @@ public class Server {
             }
         };
 
-        String name = "ScriptingSessionRegistry";
-        ScriptingSessionService stub = (ScriptingSessionService) UnicastRemoteObject.exportObject(service, 0);
-        Registry registry = LocateRegistry.getRegistry();
-        registry.rebind(name, stub);
+        ScriptingSessionFactory stub = (ScriptingSessionFactory) UnicastRemoteObject.exportObject(service, 0);
+
+        
+        registry.bind(name, stub);
+        
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                try {
+                    registry.unbind(name);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                } catch (NotBoundException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 }

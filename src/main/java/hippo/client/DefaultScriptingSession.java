@@ -8,37 +8,35 @@ import java.util.Set;
 
 public class DefaultScriptingSession implements ScriptingSession {
 
-    private final ScriptingSessionService service;
-    private String sessionId;
+    private final ScriptingSessionFactory service;
     private Set<String> types;
+    private ScriptingSession delegate;
 
-    public DefaultScriptingSession(ScriptingSessionService service) {
+    public DefaultScriptingSession(ScriptingSessionFactory service) {
         this.service = service;
     }
 
     @Override
     public void end() {
         try {
-            service.destroySession(sessionId);
+            delegate.end();
         } catch (RemoteException e) {
         }
     }
 
-    @Override
     public Object wrap(Object res) {
         if (res == null) {
             return null;
         } else if (res instanceof String || Util.isWrapperType(res.getClass())) {
             return res;
-        } else if (res instanceof LocalProxy) {
-            LocalProxy proxy = (LocalProxy) res;
+        } else if (res instanceof Proxy) {
+            Proxy proxy = (Proxy) res;
             return new ScriptableProxyObject(this, proxy);
         } else {
             throw new IllegalArgumentException();
         }
     }
 
-    @Override
     public Object[] proxyArgs(Object[] args) {
         Object[] res = args.clone();
 
@@ -60,24 +58,24 @@ public class DefaultScriptingSession implements ScriptingSession {
 
     @Override
     public Proxy newObject(String name, Object[] args) throws RemoteException {
-        return service.newObject(sessionId, name, args);
+        return delegate.newObject(name, args);
     }
 
     @Override
     public Object invoke(Proxy self, String name, Object[] args) throws RemoteException {
-        return service.invoke(sessionId, self, name, args);
+        return delegate.invoke(self, name, args);
     }
 
     @Override
     public Set<String> getTypes() throws RemoteException {
         if (types == null) {
-            types = service.getTypes(sessionId);
+            types = delegate.getTypes();
         }
         return types;
     }
 
     @Override
     public void start() throws RemoteException {
-        sessionId = service.newSession();
+        this.delegate = service.openSession();
     }
 }

@@ -1,7 +1,7 @@
 package hippo.client.impl;
 
+import hippo.client.DefaultScriptingSession;
 import hippo.client.Proxy;
-import hippo.client.ScriptingSession;
 
 import java.rmi.RemoteException;
 
@@ -14,16 +14,16 @@ public class Constructor extends ScriptableObject implements Function {
 
     private static final long serialVersionUID = 1L;
     private final String name;
-    private final ScriptingSession session;
+    private final DefaultScriptingSession session;
 
-    public Constructor(ScriptingSession session, String name) {
+    public Constructor(DefaultScriptingSession session, String name) {
         this.session = session;
         this.name = name;
     }
 
     @Override
     public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
-        throw new UnsupportedOperationException("not supported");
+        throw new UnsupportedOperationException("this is not a method");
     }
 
     @Override
@@ -34,7 +34,6 @@ public class Constructor extends ScriptableObject implements Function {
         } catch (RemoteException e) {
             throw new RuntimeException();
         }
-
     }
 
     @Override

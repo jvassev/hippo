@@ -1,5 +1,6 @@
 package hippo.client.impl;
 
+import hippo.client.DefaultScriptingSession;
 import hippo.client.Proxy;
 import hippo.client.ScriptingSession;
 
@@ -13,10 +14,10 @@ public class ScriptableProxyObject extends ScriptableObject {
 
     private static final long serialVersionUID = -7779023254342628386L;
     private final Proxy proxy;
-    private final ScriptingSession session;
+    private final DefaultScriptingSession session;
     private final Map<String, Method> methods = new HashMap<String, Method>();
 
-    public ScriptableProxyObject(ScriptingSession session, Proxy proxy) {
+    public ScriptableProxyObject(DefaultScriptingSession session, Proxy proxy) {
         this.session = session;
         this.proxy = proxy;
     }

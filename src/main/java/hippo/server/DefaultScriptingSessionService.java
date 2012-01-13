@@ -1,56 +1,39 @@
 package hippo.server;
 
-import hippo.client.Proxy;
-import hippo.client.ScriptingSessionService;
+import hippo.client.ScriptingSession;
+import hippo.client.ScriptingSessionFactory;
 
-import java.util.Set;
+import java.rmi.AlreadyBoundException;
+import java.rmi.RemoteException;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
-public abstract class DefaultScriptingSessionService implements ScriptingSessionService {
+public abstract class DefaultScriptingSessionService implements ScriptingSessionFactory {
 
-    private ConcurrentMap<String, LocalScriptSession> sessions;
+    private final Registry registry;
 
-    public DefaultScriptingSessionService() {
-        sessions = new ConcurrentHashMap<String, LocalScriptSession>();
+    public DefaultScriptingSessionService(Registry registry) {
+        this.registry = registry;
     }
 
     @Override
-    public synchronized String newSession() {
-        String id = UUID.randomUUID().toString();
+    public ScriptingSession openSession() throws RemoteException {
         LocalScriptSession session = makeSession();
-        sessions.put(id, session);
-        return id;
-    }
-
-    @Override
-    public Proxy newObject(String sessionId, String name, Object[] args) {
-        return findSession(sessionId).newObject(name, args);
-    }
-
-    private LocalScriptSession findSession(String sessionId) {
-        LocalScriptSession session = sessions.get(sessionId);
-        if (session == null) {
-            throw new IllegalArgumentException("cannot find session for " + sessionId);
-        } else {
-            return session;
+        String name = generateObjectName();
+        
+        ScriptingSession stub = (ScriptingSession) UnicastRemoteObject.exportObject(session, 0);
+        try {
+            registry.bind(name, stub);
+        } catch (AlreadyBoundException e) {
+            throw new RemoteException(e.getMessage());
         }
+        
+        return session;
     }
 
-    @Override
-    public Object invoke(String sessionId, Proxy self, String name, Object[] args) {
-        return findSession(sessionId).invoke(self, name, args);
-    }
-
-    @Override
-    public Set<String> getTypes(String sessionId) {
-        return findSession(sessionId).getTypes();
-    }
-
-    @Override
-    public synchronized void destroySession(String sessionId) {
-        sessions.remove(sessionId);
+    private String generateObjectName() {
+        return "Session-" + UUID.randomUUID().toString();
     }
 
     protected abstract LocalScriptSession makeSession();
