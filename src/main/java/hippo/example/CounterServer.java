@@ -4,7 +4,7 @@ import hippo.client.ApiDefinition;
 import hippo.client.ScriptingSessionFactory;
 import hippo.client.TypeDefinition;
 import hippo.server.DefaultScriptingSessionService;
-import hippo.server.ServerScriptSession;
+import hippo.server.ServerScriptingSession;
 
 import java.rmi.AccessException;
 import java.rmi.AlreadyBoundException;
@@ -28,8 +28,8 @@ public class CounterServer {
         ScriptingSessionFactory service = new DefaultScriptingSessionService(registry) {
 
             @Override
-            protected ServerScriptSession makeSession() {
-                return new ServerScriptSession() {
+            protected ServerScriptingSession makeSession() {
+                return new ServerScriptingSession() {
 
                     {
                         ApiDefinition apiDefinition = new ApiDefinition();

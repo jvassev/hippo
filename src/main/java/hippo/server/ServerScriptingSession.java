@@ -14,7 +14,7 @@ import java.util.UUID;
 import org.apache.commons.collections.BidiMap;
 import org.apache.commons.collections.bidimap.DualHashBidiMap;
 
-public abstract class ServerScriptSession implements ScriptingSession {
+public abstract class ServerScriptingSession implements ScriptingSession {
 
     private final BidiMap typesToClasses;
 
@@ -26,7 +26,7 @@ public abstract class ServerScriptSession implements ScriptingSession {
 
     private String id;
 
-    public ServerScriptSession() {
+    public ServerScriptingSession() {
         objects = new HashMap<String, Object>();
         variables = new HashMap<String, Object>();
         typesToClasses = new DualHashBidiMap();

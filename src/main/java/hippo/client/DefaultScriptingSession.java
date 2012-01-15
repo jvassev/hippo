@@ -48,11 +48,7 @@ public class DefaultScriptingSession implements ScriptingSession {
 
             if (o instanceof ProxiedScriptingObject) {
                 ProxiedScriptingObject spo = (ProxiedScriptingObject) o;
-                if (spo.isFromSession(this)) {
-                    res[i] = spo.getProxy();
-                } else {
-                    throw new IllegalStateException("dont know how to proxy other session's data");
-                }
+                res[i] = spo.getProxy();
             }
         }
 

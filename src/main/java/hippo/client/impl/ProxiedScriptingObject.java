@@ -93,8 +93,4 @@ public class ProxiedScriptingObject extends ScriptableObject {
     public ScriptingSession getSession() {
         return session;
     }
-
-    public boolean isFromSession(ScriptingSession other) {
-        return getSession() == other;
-    }
 }
