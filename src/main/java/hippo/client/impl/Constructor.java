@@ -2,6 +2,7 @@ package hippo.client.impl;
 
 import hippo.client.DefaultScriptingSession;
 import hippo.client.Proxy;
+import hippo.client.TypeDefinition;
 
 import java.rmi.RemoteException;
 
@@ -13,12 +14,12 @@ import org.mozilla.javascript.ScriptableObject;
 public class Constructor extends ScriptableObject implements Function {
 
     private static final long serialVersionUID = 1L;
-    private final String name;
     private final DefaultScriptingSession session;
+    private final TypeDefinition type;
 
-    public Constructor(DefaultScriptingSession session, String name) {
+    public Constructor(DefaultScriptingSession session, TypeDefinition type) {
         this.session = session;
-        this.name = name;
+        this.type = type;
     }
 
     @Override
@@ -29,8 +30,8 @@ public class Constructor extends ScriptableObject implements Function {
     @Override
     public Scriptable construct(Context cx, Scriptable scope, Object[] args) {
         try {
-            Proxy proxy = session.newObject(name, session.proxyArgs(args));
-            return new ScriptableProxyObject(session, proxy);
+            Proxy proxy = session.newObject(type.getName(), session.toProxies(args));
+            return new ProxiedScriptingObject(session, proxy, type);
         } catch (RemoteException e) {
             throw new RuntimeException();
         }
@@ -38,6 +39,6 @@ public class Constructor extends ScriptableObject implements Function {
 
     @Override
     public String getClassName() {
-        return name;
+        return type.getName();
     }
 }

@@ -1,15 +1,14 @@
 package hippo.client;
 
-import hippo.client.impl.ScriptableProxyObject;
+import hippo.client.impl.ProxiedScriptingObject;
 import hippo.client.impl.Util;
 
 import java.rmi.RemoteException;
-import java.util.Set;
 
 public class DefaultScriptingSession implements ScriptingSession {
 
     private final ScriptingSessionFactory service;
-    private Set<String> types;
+    private ApiDefinition apiDefinition;
     private ScriptingSession delegate;
 
     public DefaultScriptingSession(ScriptingSessionFactory service) {
@@ -24,27 +23,27 @@ public class DefaultScriptingSession implements ScriptingSession {
         }
     }
 
-    public Object wrap(Object res) {
+    public Object toJs(Object res) {
         if (res == null) {
             return null;
         } else if (res instanceof String || Util.isWrapperType(res.getClass())) {
             return res;
         } else if (res instanceof Proxy) {
             Proxy proxy = (Proxy) res;
-            return new ScriptableProxyObject(this, proxy);
+            return new ProxiedScriptingObject(this, proxy, apiDefinition.findType(proxy.getType()));
         } else {
             throw new IllegalArgumentException();
         }
     }
 
-    public Object[] proxyArgs(Object[] args) {
+    public Object[] toProxies(Object[] args) {
         Object[] res = args.clone();
 
         for (int i = 0; i < res.length; i++) {
             Object o = res[i];
 
-            if (o instanceof ScriptableProxyObject) {
-                ScriptableProxyObject spo = (ScriptableProxyObject) o;
+            if (o instanceof ProxiedScriptingObject) {
+                ProxiedScriptingObject spo = (ProxiedScriptingObject) o;
                 if (spo.isFromSession(this)) {
                     res[i] = spo.getProxy();
                 } else {
@@ -62,20 +61,35 @@ public class DefaultScriptingSession implements ScriptingSession {
     }
 
     @Override
-    public Object invoke(Proxy self, String name, Object[] args) throws RemoteException {
-        return delegate.invoke(self, name, args);
-    }
-
-    @Override
-    public Set<String> getTypes() throws RemoteException {
-        if (types == null) {
-            types = delegate.getTypes();
-        }
-        return types;
+    public Object invokeMethod(Proxy self, String name, Object[] args) throws RemoteException {
+        return delegate.invokeMethod(self, name, args);
     }
 
     @Override
     public void start() throws RemoteException {
         this.delegate = service.openSession();
+    }
+
+    @Override
+    public ApiDefinition getApiDefinition() throws RemoteException {
+        if (apiDefinition == null) {
+            apiDefinition = delegate.getApiDefinition();
+        }
+        return apiDefinition;
+    }
+
+    @Override
+    public Object getProperty(Proxy self, String property) throws RemoteException {
+        return delegate.getProperty(self, property);
+    }
+
+    @Override
+    public Object getVariable(String name) throws RemoteException {
+        return delegate.getVariable(name);
+    }
+
+    @Override
+    public void putProperty(Proxy self, String property, Object value) throws RemoteException {
+        delegate.putProperty(self, property, value);
     }
 }

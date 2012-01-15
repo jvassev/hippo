@@ -19,7 +19,7 @@ public abstract class DefaultScriptingSessionService implements ScriptingSession
 
     @Override
     public ScriptingSession openSession() throws RemoteException {
-        LocalScriptSession session = makeSession();
+        ServerScriptSession session = makeSession();
         String name = generateObjectName();
         
         ScriptingSession stub = (ScriptingSession) UnicastRemoteObject.exportObject(session, 0);
@@ -36,5 +36,5 @@ public abstract class DefaultScriptingSessionService implements ScriptingSession
         return "Session-" + UUID.randomUUID().toString();
     }
 
-    protected abstract LocalScriptSession makeSession();
+    protected abstract ServerScriptSession makeSession();
 }

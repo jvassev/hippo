@@ -1,8 +1,10 @@
 package hippo.example;
 
+import hippo.client.ApiDefinition;
 import hippo.client.ScriptingSessionFactory;
+import hippo.client.TypeDefinition;
 import hippo.server.DefaultScriptingSessionService;
-import hippo.server.LocalScriptSession;
+import hippo.server.ServerScriptSession;
 
 import java.rmi.AccessException;
 import java.rmi.AlreadyBoundException;
@@ -20,15 +22,25 @@ public class Server {
             server = args[0];
         }
         final Registry registry = LocateRegistry.getRegistry(server);
-        
-        
+
         final String name = "Counter";
         ScriptingSessionFactory service = new DefaultScriptingSessionService(registry) {
             @Override
-            protected LocalScriptSession makeSession() {
-                return new LocalScriptSession() {
+            protected ServerScriptSession makeSession() {
+                return new ServerScriptSession() {
                     {
-                        registerType("Counter", Counter.class);
+                        ApiDefinition apiDefinition = new ApiDefinition();
+                        TypeDefinition counter = new TypeDefinition("Counter");
+                        counter.defineMethod("get");
+                        counter.defineMethod("inc");
+                        counter.defineMethod("copy");
+                        counter.defineMethod("clone");
+                        counter.defineProperty("value");
+                        apiDefinition.defineType(counter);
+
+                        apiDefinition.defineVariable("env");
+                        defineApi(apiDefinition);
+                        defineClassMapping("Counter", Counter.class);
                     }
 
                     @Override
@@ -43,6 +55,15 @@ public class Server {
                         } else {
                             throw new IllegalArgumentException("cannot how to make " + name + " from "
                                     + Arrays.toString(args));
+                        }
+                    }
+
+                    @Override
+                    protected Object getVariableReal(String name) {
+                        if (name.equals("env")) {
+                            return new Counter(10);
+                        } else {
+                            return null;
                         }
                     }
 
@@ -64,15 +85,34 @@ public class Server {
                                     + Arrays.toString(args));
                         }
                     }
+
+                    @Override
+                    protected Object getPropertyReal(Object instance, String name) {
+                        Counter c = (Counter) instance;
+                        if (name.equals("value")) {
+                            return c.get();
+                        } else {
+                            return null;
+                        }
+                    }
+
+                    @Override
+                    protected Object putPropertyReal(Object instance, String name, Object value) {
+                        throw new RuntimeException("no writable properties");
+                    }
+
+                    @Override
+                    public void end() {
+                        // callback to clean up
+                    }
                 };
             }
         };
 
         ScriptingSessionFactory stub = (ScriptingSessionFactory) UnicastRemoteObject.exportObject(service, 0);
 
-        
         registry.bind(name, stub);
-        
+
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {

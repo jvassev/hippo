@@ -1,9 +1,7 @@
 package hippo.client;
 
-
 import java.rmi.Remote;
 import java.rmi.RemoteException;
-import java.util.Set;
 
 public interface ScriptingSession extends Remote {
 
@@ -13,7 +11,13 @@ public interface ScriptingSession extends Remote {
 
     Proxy newObject(String name, Object args[]) throws RemoteException;
 
-    Object invoke(Proxy self, String name, Object args[]) throws RemoteException;
+    Object invokeMethod(Proxy self, String name, Object args[]) throws RemoteException;
 
-    Set<String> getTypes() throws RemoteException;
+    ApiDefinition getApiDefinition() throws RemoteException;
+
+    Object getProperty(Proxy self, String property) throws RemoteException;
+
+    void putProperty(Proxy self, String property, Object value) throws RemoteException;
+
+    Object getVariable(String name) throws RemoteException;
 }

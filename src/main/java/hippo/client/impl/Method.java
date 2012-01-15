@@ -27,11 +27,11 @@ public class Method extends ScriptableObject implements Function {
     public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
         Object res;
         try {
-            res = session.invoke(proxy, name, session.proxyArgs(args));
+            res = session.invokeMethod(proxy, name, session.toProxies(args));
         } catch (RemoteException e) {
             throw new RuntimeException(e);
         }
-        return session.wrap(res);
+        return session.toJs(res);
     }
 
     @Override

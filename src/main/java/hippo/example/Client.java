@@ -49,8 +49,9 @@ public class Client {
 
             long start = System.currentTimeMillis();
 
-            cx.evaluateString(root, "var c = new Counter(0);\n" + "for (i=0; i < 10000; i++) {\n" + "  c.inc();\n"
-                    + "}\n" + "\n" + "Packages.java.lang.System.out.println(c.get());", "<>", -1, null);
+            cx.evaluateString(root, "Packages.java.lang.System.out.println(env.value);var c = new Counter(0);\n"
+                    + "for (i=0; i < 10000; i++) {\n" + "  c.inc();\n" + "}\n" + "\n"
+                    + "Packages.java.lang.System.out.println(c.value);", "<>", -1, null);
             System.out.println(System.currentTimeMillis() - start);
         } finally {
             Context.exit();

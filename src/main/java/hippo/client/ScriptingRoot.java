@@ -3,27 +3,38 @@ package hippo.client;
 import hippo.client.impl.Constructor;
 
 import java.rmi.RemoteException;
-import java.util.HashSet;
-import java.util.Set;
 
+import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 
 public class ScriptingRoot extends ScriptableObject {
 
     private static final long serialVersionUID = 1620417396498909133L;
-    private Set<String> knownTypes;
     private final DefaultScriptingSession session;
-
-    public void registerType(String type) {
-        knownTypes.add(type);
-        ScriptableObject.putProperty(this, type, new Constructor(session, type));
-    }
+    private ApiDefinition apiDefinition;
 
     public ScriptingRoot(DefaultScriptingSession session) throws RemoteException {
-        knownTypes = new HashSet<String>();
         this.session = session;
-        for (String type : session.getTypes()) {
-            registerType(type);
+        apiDefinition = session.getApiDefinition();
+        defineApi();
+    }
+
+    private void defineApi() {
+        for (TypeDefinition type : apiDefinition.getTypes().values()) {
+            ScriptableObject.putProperty(this, type.getName(), new Constructor(session, type));
+        }
+    }
+
+    @Override
+    public Object get(String name, Scriptable start) {
+        if (apiDefinition.variableDefined(name)) {
+            try {
+                return session.toJs(session.getVariable(name));
+            } catch (RemoteException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            return super.get(name, start);
         }
     }
 
