@@ -13,6 +13,8 @@ public class DefaultScriptingSession implements ScriptingSession {
 
     private ScriptingSession delegate;
 
+    private String id;
+
     public DefaultScriptingSession(ScriptingSessionFactory service) {
         this.service = service;
     }
@@ -93,5 +95,13 @@ public class DefaultScriptingSession implements ScriptingSession {
     @Override
     public void putProperty(Proxy self, String property, Object value) throws RemoteException {
         delegate.putProperty(self, property, value);
+    }
+
+    @Override
+    public String getId() throws RemoteException {
+        if (id == null) {
+            id = delegate.getId();
+        }
+        return id;
     }
 }

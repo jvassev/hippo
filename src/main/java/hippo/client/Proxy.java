@@ -8,6 +8,8 @@ public final class Proxy implements Serializable {
 
     private String type;
 
+    private String sessionId;
+
     private String id;
 
     public String getType() {
@@ -28,6 +30,16 @@ public final class Proxy implements Serializable {
 
     @Override
     public String toString() {
-        return type + "#" + id;
+        return sessionId + "#" + type + "#" + id;
+    }
+
+
+    public String getSessionId() {
+        return sessionId;
+    }
+
+
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
     }
 }

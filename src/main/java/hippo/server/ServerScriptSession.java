@@ -24,6 +24,8 @@ public abstract class ServerScriptSession implements ScriptingSession {
 
     private ApiDefinition apiDefinition;
 
+    private String id;
+
     public ServerScriptSession() {
         objects = new HashMap<String, Object>();
         variables = new HashMap<String, Object>();
@@ -58,6 +60,7 @@ public abstract class ServerScriptSession implements ScriptingSession {
         Proxy proxy = new Proxy();
         proxy.setId(UUID.randomUUID().toString());
         proxy.setType(name);
+        proxy.setId(id);
         return proxy;
     }
 
@@ -151,6 +154,15 @@ public abstract class ServerScriptSession implements ScriptingSession {
         }
 
         return toProxy(var);
+    }
+
+    @Override
+    public String getId() throws RemoteException {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     protected abstract Object getVariableReal(String name);

@@ -20,11 +20,11 @@ public abstract class DefaultScriptingSessionService implements ScriptingSession
     @Override
     public ScriptingSession openSession() throws RemoteException {
         ServerScriptSession session = makeSession();
-        String name = generateObjectName();
-
+        String id = generateSessionId();
+        session.setId(id);
         ScriptingSession stub = (ScriptingSession) UnicastRemoteObject.exportObject(session, 0);
         try {
-            registry.bind(name, stub);
+            registry.bind(id, stub);
         } catch (AlreadyBoundException e) {
             throw new RemoteException(e.getMessage());
         }
@@ -32,7 +32,7 @@ public abstract class DefaultScriptingSessionService implements ScriptingSession
         return session;
     }
 
-    private String generateObjectName() {
+    private String generateSessionId() {
         return "Session-" + UUID.randomUUID().toString();
     }
 
