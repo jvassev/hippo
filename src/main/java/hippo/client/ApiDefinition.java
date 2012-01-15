@@ -7,8 +7,11 @@ import java.util.Map;
 import java.util.Set;
 
 public class ApiDefinition implements Serializable {
+
     private static final long serialVersionUID = -3298264233533615798L;
+
     private Map<String, TypeDefinition> types;
+
     private Set<String> variables;
 
     public ApiDefinition() {

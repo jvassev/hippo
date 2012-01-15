@@ -15,7 +15,8 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Arrays;
 
-public class Server {
+public class CounterServer {
+
     public static void main(String[] args) throws AccessException, RemoteException, AlreadyBoundException {
         String server = "localhost";
         if (args.length == 1) {
@@ -25,9 +26,11 @@ public class Server {
 
         final String name = "Counter";
         ScriptingSessionFactory service = new DefaultScriptingSessionService(registry) {
+
             @Override
             protected ServerScriptSession makeSession() {
                 return new ServerScriptSession() {
+
                     {
                         ApiDefinition apiDefinition = new ApiDefinition();
                         TypeDefinition counter = new TypeDefinition("Counter");
@@ -114,6 +117,7 @@ public class Server {
         registry.bind(name, stub);
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
+
             @Override
             public void run() {
                 try {

@@ -21,14 +21,14 @@ public abstract class DefaultScriptingSessionService implements ScriptingSession
     public ScriptingSession openSession() throws RemoteException {
         ServerScriptSession session = makeSession();
         String name = generateObjectName();
-        
+
         ScriptingSession stub = (ScriptingSession) UnicastRemoteObject.exportObject(session, 0);
         try {
             registry.bind(name, stub);
         } catch (AlreadyBoundException e) {
             throw new RemoteException(e.getMessage());
         }
-        
+
         return session;
     }
 

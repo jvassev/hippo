@@ -15,6 +15,7 @@ import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 
 public class Client {
+
     public static void main(String[] args) throws IOException, NotBoundException, IllegalAccessException,
             InstantiationException, InvocationTargetException {
         String server = "localhost";

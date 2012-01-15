@@ -13,8 +13,11 @@ import org.mozilla.javascript.ScriptableObject;
 public class Method extends ScriptableObject implements Function {
 
     private static final long serialVersionUID = -6098701947260250943L;
+
     private final Proxy proxy;
+
     private final DefaultScriptingSession session;
+
     private final String name;
 
     public Method(String name, DefaultScriptingSession session, Proxy proxy) {

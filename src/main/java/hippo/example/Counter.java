@@ -1,6 +1,7 @@
 package hippo.example;
 
 public class Counter {
+
     private int i;
 
     public Counter() {

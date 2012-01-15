@@ -15,9 +15,13 @@ import org.mozilla.javascript.ScriptableObject;
 public class ProxiedScriptingObject extends ScriptableObject {
 
     private static final long serialVersionUID = -7779023254342628386L;
+
     private final Proxy proxy;
+
     private final DefaultScriptingSession session;
+
     private final Map<String, Method> methods = new HashMap<String, Method>();
+
     private final TypeDefinition type;
 
     public ProxiedScriptingObject(DefaultScriptingSession session, Proxy proxy, TypeDefinition type) {

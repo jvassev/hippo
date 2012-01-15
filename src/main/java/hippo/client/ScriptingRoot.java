@@ -10,7 +10,9 @@ import org.mozilla.javascript.ScriptableObject;
 public class ScriptingRoot extends ScriptableObject {
 
     private static final long serialVersionUID = 1620417396498909133L;
+
     private final DefaultScriptingSession session;
+
     private ApiDefinition apiDefinition;
 
     public ScriptingRoot(DefaultScriptingSession session) throws RemoteException {

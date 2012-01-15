@@ -3,7 +3,9 @@ package hippo.example;
 import org.mozilla.javascript.ScriptableObject;
 
 public class LocalCounter extends ScriptableObject {
+
     private static final long serialVersionUID = 7080429343972626993L;
+
     private int i;
 
     public LocalCounter() {

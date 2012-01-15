@@ -5,10 +5,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class TypeDefinition implements Serializable {
+
     private static final long serialVersionUID = -2661720616551667553L;
 
     private final String name;
+
     private Set<String> methods;
+
     private Set<String> properties;
 
     public TypeDefinition(String name) {

@@ -8,7 +8,9 @@ import java.rmi.RemoteException;
 public class DefaultScriptingSession implements ScriptingSession {
 
     private final ScriptingSessionFactory service;
+
     private ApiDefinition apiDefinition;
+
     private ScriptingSession delegate;
 
     public DefaultScriptingSession(ScriptingSessionFactory service) {

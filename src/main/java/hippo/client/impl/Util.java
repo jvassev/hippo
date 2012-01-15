@@ -3,6 +3,7 @@ package hippo.client.impl;
 import java.util.HashSet;
 
 public class Util {
+
     private static final HashSet<Class<?>> WRAPPER_TYPES = getWrapperTypes();
 
     private static HashSet<Class<?>> getWrapperTypes() {
