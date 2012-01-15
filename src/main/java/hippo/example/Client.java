@@ -24,10 +24,11 @@ public class Client {
         }
         Registry registry = LocateRegistry.getRegistry(server);
 
-        ScriptingSessionFactory service = (ScriptingSessionFactory) registry.lookup("Counter");
+        ScriptingSessionFactory counterFactory = (ScriptingSessionFactory) registry.lookup("Counter");
+        ScriptingSessionFactory timerFactory = (ScriptingSessionFactory) registry.lookup("Timer");
 
-        DefaultScriptingSession session = new DefaultScriptingSession(service);
-        session.start();
+        DefaultScriptingSession counterSession = new DefaultScriptingSession(counterFactory);
+        DefaultScriptingSession timerSession = new DefaultScriptingSession(timerFactory);
         // //////////
 
         Context cx = Context.enter();
@@ -35,8 +36,13 @@ public class Client {
         try {
             Scriptable std = cx.initStandardObjects();
             ScriptableObject.defineClass(std, LocalCounter.class);
-            ScriptingRoot root = new ScriptingRoot(session);
-            root.setPrototype(std);
+
+            ScriptingRoot timerScope = new ScriptingRoot(timerSession);
+            timerScope.setPrototype(std);
+
+            ScriptingRoot counterScope = new ScriptingRoot(counterSession);
+            counterScope.setPrototype(timerScope);
+
 
             // Object res = cx.evaluateReader(root, new
             // StringReader("var x = new Counter();\n" + "x.inc();\n"
@@ -50,13 +56,15 @@ public class Client {
 
             long start = System.currentTimeMillis();
 
-            cx.evaluateString(root, "Packages.java.lang.System.out.println(env.value);var c = new Counter(0);\n"
-                    + "for (i=0; i < 10000; i++) {\n" + "  c.inc();\n" + "}\n" + "\n"
-                    + "Packages.java.lang.System.out.println(c.value);", "<>", -1, null);
+            cx.evaluateString(counterScope,
+                    "Packages.java.lang.System.out.println(env.value);var c = new Counter(0);\n"
+                            + "for (i=0; i < 10000; i++) {\n" + "  c.inc();\n" + "}\n" + "\n"
+                            + "Packages.java.lang.System.out.println(c.value);"
+                            + "Packages.java.lang.System.out.println('elapsed: ' + timer.elapsed);", "<>", -1, null);
             System.out.println(System.currentTimeMillis() - start);
         } finally {
             Context.exit();
-            session.end();
+            counterSession.end();
         }
     }
 }

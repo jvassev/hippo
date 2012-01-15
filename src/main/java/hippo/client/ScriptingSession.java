@@ -5,8 +5,6 @@ import java.rmi.RemoteException;
 
 public interface ScriptingSession extends Remote {
 
-    void start() throws RemoteException;
-
     void end() throws RemoteException;
 
     String getId() throws RemoteException;

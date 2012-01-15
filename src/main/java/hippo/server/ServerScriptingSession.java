@@ -37,10 +37,6 @@ public abstract class ServerScriptingSession implements ScriptingSession {
         return apiDefinition;
     }
 
-    public void defineClassMapping(String type, Class<?> clazz) {
-        typesToClasses.put(type, clazz);
-    }
-
     @Override
     public void end() {
         // throw new UnsupportedOperationException("implement me!");
@@ -141,7 +137,7 @@ public abstract class ServerScriptingSession implements ScriptingSession {
         }
     }
 
-    public void defineApi(ApiDefinition apiDefinition) {
+    void defineApi(ApiDefinition apiDefinition) {
         this.apiDefinition = apiDefinition;
     }
 
@@ -161,8 +157,14 @@ public abstract class ServerScriptingSession implements ScriptingSession {
         return id;
     }
 
-    public void setId(String id) {
+    void setId(String id) {
         this.id = id;
+    }
+
+    void defineClassMapping(Map<String, Class<?>> mapping) {
+        for (Map.Entry<String, Class<?>> e : mapping.entrySet()) {
+            typesToClasses.put(e.getKey(), e.getValue());
+        }
     }
 
     protected abstract Object getVariableReal(String name);
@@ -175,4 +177,6 @@ public abstract class ServerScriptingSession implements ScriptingSession {
 
     protected abstract Object putPropertyReal(Object instance, String name, Object value);
 
+    public void start() {
+    }
 }

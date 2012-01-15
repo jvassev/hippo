@@ -15,8 +15,9 @@ public class DefaultScriptingSession implements ScriptingSession {
 
     private String id;
 
-    public DefaultScriptingSession(ScriptingSessionFactory service) {
+    public DefaultScriptingSession(ScriptingSessionFactory service) throws RemoteException {
         this.service = service;
+        this.delegate = service.openSession();
     }
 
     @Override
@@ -63,11 +64,6 @@ public class DefaultScriptingSession implements ScriptingSession {
     @Override
     public Object invokeMethod(Proxy self, String name, Object[] args) throws RemoteException {
         return delegate.invokeMethod(self, name, args);
-    }
-
-    @Override
-    public void start() throws RemoteException {
-        this.delegate = service.openSession();
     }
 
     @Override

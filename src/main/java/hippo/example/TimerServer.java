@@ -11,9 +11,8 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.util.Arrays;
 
-public class CounterServer {
+public class TimerServer {
 
     public static void main(String[] args) throws AccessException, RemoteException, AlreadyBoundException {
         String server = "localhost";
@@ -29,20 +28,22 @@ public class CounterServer {
             protected ServerScriptingSession makeSession() {
                 return new ServerScriptingSession() {
 
+                    private Timer timer;
+
+                    @Override
+                    public void start() {
+                        timer = new Timer();
+                    }
+
                     @Override
                     protected Object newInstaceReal(String name, Object[] args) {
-                        if (name.equals("Counter")) {
-                            return new Counter();
-                        } else {
-                            throw new IllegalArgumentException("cannot how to make " + name + " from "
-                                    + Arrays.toString(args));
-                        }
+                        throw new IllegalArgumentException("sdf");
                     }
 
                     @Override
                     protected Object getVariableReal(String name) {
-                        if (name.equals("env")) {
-                            return new Counter(10);
+                        if (name.equals("timer")) {
+                            return timer;
                         } else {
                             return null;
                         }
@@ -50,28 +51,14 @@ public class CounterServer {
 
                     @Override
                     protected Object invokeReal(Object instance, String name, Object[] args) {
-                        Counter c = (Counter) instance;
-                        if (name.equals("inc")) {
-                            c.inc();
-                            return null;
-                        } else if (name.equals("get")) {
-                            return c.get();
-                        } else if (name.equals("clone")) {
-                            return c.clone();
-                        } else if (name.equals("copy")) {
-                            c.copy((Counter) args[0]);
-                            return null;
-                        } else {
-                            throw new IllegalArgumentException("cannot how to call " + instance + "#" + name + " with "
-                                    + Arrays.toString(args));
-                        }
+                        throw new IllegalArgumentException("sdf");
                     }
 
                     @Override
                     protected Object getPropertyReal(Object instance, String name) {
-                        Counter c = (Counter) instance;
-                        if (name.equals("value")) {
-                            return c.get();
+                        Timer c = (Timer) instance;
+                        if (name.equals("elapsed")) {
+                            return c.getElapsed();
                         } else {
                             return null;
                         }
@@ -94,7 +81,7 @@ public class CounterServer {
         ApiDefinition apiDefinition = defineApi();
 
         service.defineApi(apiDefinition);
-        service.defineClassMapping("Counter", Counter.class);
+        service.defineClassMapping("Timer", Timer.class);
         service.bind();
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -113,17 +100,13 @@ public class CounterServer {
     }
 
     private static ApiDefinition defineApi() {
-        ApiDefinition apiDefinition = new ApiDefinition("Counter");
+        ApiDefinition apiDefinition = new ApiDefinition("Timer");
 
-        TypeDefinition counter = new TypeDefinition("Counter");
-        counter.defineMethod("get");
-        counter.defineMethod("inc");
-        counter.defineMethod("copy");
-        counter.defineMethod("clone");
-        counter.defineProperty("value");
+        TypeDefinition counter = new TypeDefinition("Timer");
+        counter.defineProperty("elapsed");
         apiDefinition.defineType(counter);
 
-        apiDefinition.defineVariable("env");
+        apiDefinition.defineVariable("timer");
         return apiDefinition;
     }
 }

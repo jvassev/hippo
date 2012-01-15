@@ -14,7 +14,10 @@ public class ApiDefinition implements Serializable {
 
     private Set<String> variables;
 
-    public ApiDefinition() {
+    private final String name;
+
+    public ApiDefinition(String name) {
+        this.name = name;
         variables = new HashSet<String>();
         types = new HashMap<String, TypeDefinition>();
     }
@@ -39,5 +42,10 @@ public class ApiDefinition implements Serializable {
 
     public TypeDefinition findType(String name) {
         return types.get(name);
+    }
+
+
+    public String getName() {
+        return name;
     }
 }
