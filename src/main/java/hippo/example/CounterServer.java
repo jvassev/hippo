@@ -2,6 +2,7 @@ package hippo.example;
 
 import hippo.client.ApiDefinition;
 import hippo.client.TypeDefinition;
+import hippo.example.domain.Counter;
 import hippo.server.DefaultScriptingSessionFactory;
 import hippo.server.ServerScriptingSession;
 

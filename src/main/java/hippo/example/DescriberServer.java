@@ -2,7 +2,7 @@ package hippo.example;
 
 import hippo.client.ApiDefinition;
 import hippo.client.TypeDefinition;
-import hippo.example.domain.Timer;
+import hippo.example.domain.Describer;
 import hippo.server.DefaultScriptingSessionFactory;
 import hippo.server.ServerScriptingSession;
 
@@ -13,7 +13,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
-public class TimerServer {
+public class DescriberServer {
 
     public static void main(String[] args) throws AccessException, RemoteException, AlreadyBoundException {
         String server = "localhost";
@@ -29,13 +29,6 @@ public class TimerServer {
             protected ServerScriptingSession makeSession() {
                 return new ServerScriptingSession() {
 
-                    private Timer timer;
-
-                    @Override
-                    public void start() {
-                        timer = new Timer();
-                    }
-
                     @Override
                     protected Object newInstaceReal(String name, Object[] args) {
                         throw new IllegalArgumentException("sdf");
@@ -43,8 +36,8 @@ public class TimerServer {
 
                     @Override
                     protected Object getVariableReal(String name) {
-                        if (name.equals("timer")) {
-                            return timer;
+                        if (name.equals("describer")) {
+                            return new Describer();
                         } else {
                             return null;
                         }
@@ -52,22 +45,24 @@ public class TimerServer {
 
                     @Override
                     protected Object invokeReal(Object instance, String name, Object[] args) {
-                        throw new IllegalArgumentException("sdf");
-                    }
-
-                    @Override
-                    protected Object getPropertyReal(Object instance, String name) {
-                        Timer c = (Timer) instance;
-                        if (name.equals("elapsed")) {
-                            return c.getElapsed();
+                        Describer d = (Describer) instance;
+                        if (name.equals("describe")) {
+                            return d.describe(args[0]);
+                        } else if (name.equals("touch")) {
+                            return d.touch(args[0]);
                         } else {
-                            return null;
+                            throw new IllegalArgumentException("unknown method");
                         }
                     }
 
                     @Override
+                    protected Object getPropertyReal(Object instance, String name) {
+                        throw new IllegalArgumentException("unknown property");
+                    }
+
+                    @Override
                     protected Object putPropertyReal(Object instance, String name, Object value) {
-                        throw new RuntimeException("no writable properties");
+                        throw new IllegalArgumentException("unknown property");
                     }
                 };
             }
@@ -77,7 +72,7 @@ public class TimerServer {
         ApiDefinition apiDefinition = defineApi();
 
         service.defineApi(apiDefinition);
-        service.defineClassMapping("Timer", Timer.class);
+        service.defineClassMapping("Describer", Describer.class);
         service.bind();
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -96,13 +91,14 @@ public class TimerServer {
     }
 
     private static ApiDefinition defineApi() {
-        ApiDefinition apiDefinition = new ApiDefinition("Timer");
+        ApiDefinition apiDefinition = new ApiDefinition("Describer");
 
-        TypeDefinition timer = new TypeDefinition("Timer");
-        timer.defineProperty("elapsed");
-        apiDefinition.defineType(timer);
+        TypeDefinition describer = new TypeDefinition("Describer");
+        apiDefinition.defineType(describer);
+        describer.defineMethod("describe");
+        describer.defineMethod("touch");
 
-        apiDefinition.defineVariable("timer");
+        apiDefinition.defineVariable("describer");
         return apiDefinition;
     }
 }

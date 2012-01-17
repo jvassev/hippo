@@ -24,10 +24,14 @@ public class ProxiedScriptingObject extends ScriptableObject {
 
     private final TypeDefinition type;
 
-    public ProxiedScriptingObject(DefaultScriptingSession session, Proxy proxy, TypeDefinition type) {
+    public ProxiedScriptingObject(DefaultScriptingSession session, Proxy proxy) {
         this.session = session;
         this.proxy = proxy;
-        this.type = type;
+        try {
+            this.type = session.getApiDefinition().findType(proxy.getType());
+        } catch (RemoteException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

@@ -15,9 +15,14 @@ public class DefaultScriptingSession implements ScriptingSession {
 
     private String id;
 
-    public DefaultScriptingSession(ScriptingSessionFactory service) throws RemoteException {
+    private final SessionCache cache;
+
+
+    public DefaultScriptingSession(ScriptingSessionFactory service, SessionCache cache) throws RemoteException {
         this.service = service;
+        this.cache = cache;
         this.delegate = service.openSession();
+        cache.addSession(this);
     }
 
     @Override
@@ -35,7 +40,7 @@ public class DefaultScriptingSession implements ScriptingSession {
             return res;
         } else if (res instanceof Proxy) {
             Proxy proxy = (Proxy) res;
-            return new ProxiedScriptingObject(this, proxy, apiDefinition.findType(proxy.getType()));
+            return new ProxiedScriptingObject(cache.findSession(proxy.getSessionId()), proxy);
         } else {
             throw new IllegalArgumentException();
         }

@@ -33,7 +33,7 @@ public class Constructor extends ScriptableObject implements Function {
     public Scriptable construct(Context cx, Scriptable scope, Object[] args) {
         try {
             Proxy proxy = session.newObject(type.getName(), session.toProxies(args));
-            return new ProxiedScriptingObject(session, proxy, type);
+            return new ProxiedScriptingObject(session, proxy);
         } catch (RemoteException e) {
             throw new RuntimeException();
         }

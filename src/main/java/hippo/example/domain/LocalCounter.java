@@ -1,4 +1,4 @@
-package hippo.example;
+package hippo.example.domain;
 
 import org.mozilla.javascript.ScriptableObject;
 

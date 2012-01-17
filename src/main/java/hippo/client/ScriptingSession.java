@@ -9,9 +9,9 @@ public interface ScriptingSession extends Remote {
 
     String getId() throws RemoteException;
 
-    Proxy newObject(String name, Object args[]) throws RemoteException;
+    Proxy newObject(String type, Object args[]) throws RemoteException;
 
-    Object invokeMethod(Proxy self, String name, Object args[]) throws RemoteException;
+    Object invokeMethod(Proxy self, String method, Object args[]) throws RemoteException;
 
     ApiDefinition getApiDefinition() throws RemoteException;
 

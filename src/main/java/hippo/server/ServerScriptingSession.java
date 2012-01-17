@@ -1,6 +1,7 @@
 package hippo.server;
 
 import hippo.client.ApiDefinition;
+import hippo.client.ForeignObject;
 import hippo.client.Proxy;
 import hippo.client.ScriptingSession;
 import hippo.client.impl.Util;
@@ -26,6 +27,8 @@ public abstract class ServerScriptingSession implements ScriptingSession {
 
     private String id;
 
+    private SessionLocator locator;
+
     public ServerScriptingSession() {
         objects = new HashMap<String, Object>();
         variables = new HashMap<String, Object>();
@@ -37,10 +40,6 @@ public abstract class ServerScriptingSession implements ScriptingSession {
         return apiDefinition;
     }
 
-    @Override
-    public void end() {
-        // throw new UnsupportedOperationException("implement me!");
-    }
 
     @Override
     public Proxy newObject(final String name, Object[] args) {
@@ -56,7 +55,7 @@ public abstract class ServerScriptingSession implements ScriptingSession {
         Proxy proxy = new Proxy();
         proxy.setId(UUID.randomUUID().toString());
         proxy.setType(name);
-        proxy.setId(id);
+        proxy.setSessionId(id);
         return proxy;
     }
 
@@ -68,7 +67,7 @@ public abstract class ServerScriptingSession implements ScriptingSession {
         return toProxy(res);
     }
 
-    private Object getRealObject(Proxy proxy) {
+    public Object getRealObject(Proxy proxy) {
         Object object = objects.get(proxy.getId());
         return object;
     }
@@ -92,27 +91,31 @@ public abstract class ServerScriptingSession implements ScriptingSession {
         putPropertyReal(instance, property, unProxy(value));
     }
 
-    private Object unProxy(Object o) {
-        if (o instanceof Proxy) {
-            Proxy proxy = (Proxy) o;
+    private Object unProxy(Object removeValue) {
+        if (removeValue instanceof Proxy) {
+            Proxy proxy = (Proxy) removeValue;
             Object real = getRealObject(proxy);
             if (real != null) {
                 return real;
             } else {
-                throw new IllegalStateException("cannot unproxy" + proxy);
+                // Proxy from other session
+                return new ForeignObject(proxy, this, locator);
             }
         } else {
-            return o;
+            return removeValue;
         }
     }
 
-    private Object toProxy(Object res) {
-        if (res == null) {
+    public Object toProxy(Object localValue) {
+        if (localValue == null) {
             return null;
-        } else if (res instanceof String || Util.isWrapperType(res.getClass())) {
-            return res;
+        } else if (localValue instanceof String || Util.isWrapperType(localValue.getClass())) {
+            return localValue;
+        } else if (localValue instanceof ForeignObject) {
+            ForeignObject fo = (ForeignObject) localValue;
+            return fo.getProxy();
         } else {
-            Class<?> cls = res.getClass();
+            Class<?> cls = localValue.getClass();
             String type;
             do {
                 type = (String) typesToClasses.inverseBidiMap().get(cls);
@@ -124,14 +127,14 @@ public abstract class ServerScriptingSession implements ScriptingSession {
             } while (cls != null);
 
             if (type == null) {
-                if (res instanceof Serializable) {
-                    return res;
+                if (localValue instanceof Serializable) {
+                    return localValue;
                 } else {
-                    throw new IllegalStateException("cannot proxy nor serialize " + res);
+                    throw new IllegalStateException("cannot proxy nor serialize " + localValue);
                 }
             } else {
                 Proxy proxy = makeProxy(type);
-                registerProxy(proxy, res);
+                registerProxy(proxy, localValue);
                 return proxy;
             }
         }
@@ -167,6 +170,17 @@ public abstract class ServerScriptingSession implements ScriptingSession {
         }
     }
 
+    public void start() {
+    }
+
+    @Override
+    public void end() {
+    }
+
+    void setLocator(SessionLocator locator) {
+        this.locator = locator;
+    }
+
     protected abstract Object getVariableReal(String name);
 
     protected abstract Object invokeReal(Object instance, String name, Object[] args);
@@ -176,7 +190,4 @@ public abstract class ServerScriptingSession implements ScriptingSession {
     protected abstract Object getPropertyReal(Object instance, String name);
 
     protected abstract Object putPropertyReal(Object instance, String name, Object value);
-
-    public void start() {
-    }
 }

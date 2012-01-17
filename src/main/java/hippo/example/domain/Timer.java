@@ -1,4 +1,4 @@
-package hippo.example;
+package hippo.example.domain;
 
 
 public class Timer {

@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public abstract class DefaultScriptingSessionFactory implements ScriptingSessionFactory {
+public abstract class DefaultScriptingSessionFactory implements ScriptingSessionFactory, SessionLocator {
 
     private final Registry registry;
 
@@ -27,6 +27,7 @@ public abstract class DefaultScriptingSessionFactory implements ScriptingSession
         typesToClasses = new HashMap<String, Class<?>>();
     }
 
+
     @Override
     public ScriptingSession openSession() throws RemoteException {
         ServerScriptingSession session = makeSession();
@@ -36,7 +37,7 @@ public abstract class DefaultScriptingSessionFactory implements ScriptingSession
         session.defineApi(apiDefinition);
 
         session.defineClassMapping(typesToClasses);
-
+        session.setLocator(this);
         session.start();
         ScriptingSession stub = (ScriptingSession) UnicastRemoteObject.exportObject(session, 0);
 
@@ -50,7 +51,7 @@ public abstract class DefaultScriptingSessionFactory implements ScriptingSession
     }
 
     private String generateSessionId() {
-        return "Session-" + UUID.randomUUID().toString();
+        return apiDefinition.getName() + "/" + UUID.randomUUID().toString();
     }
 
 
@@ -69,6 +70,22 @@ public abstract class DefaultScriptingSessionFactory implements ScriptingSession
 
     public void defineApi(ApiDefinition apiDefinition) {
         this.apiDefinition = apiDefinition;
+    }
+
+    @Override
+    public ScriptingSession lookup(String sessionId) {
+        try {
+            return (ScriptingSession) registry.lookup(sessionId);
+        } catch (AccessException e) {
+            e.printStackTrace();
+            return null;
+        } catch (RemoteException e) {
+            e.printStackTrace();
+            return null;
+        } catch (NotBoundException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     protected abstract ServerScriptingSession makeSession();
