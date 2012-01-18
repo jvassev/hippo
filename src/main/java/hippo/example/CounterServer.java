@@ -1,6 +1,7 @@
 package hippo.example;
 
 import hippo.client.ApiDefinition;
+import hippo.client.PropertyDefinition;
 import hippo.client.TypeDefinition;
 import hippo.example.domain.Counter;
 import hippo.server.DefaultScriptingSessionFactory;
@@ -121,7 +122,9 @@ public class CounterServer {
         counter.defineMethod("inc");
         counter.defineMethod("copy");
         counter.defineMethod("clone");
-        counter.defineProperty("value");
+        PropertyDefinition prop = new PropertyDefinition("value");
+        prop.setWritable(false);
+        counter.defineProperty(prop);
         apiDefinition.defineType(counter);
 
         apiDefinition.defineVariable("env");

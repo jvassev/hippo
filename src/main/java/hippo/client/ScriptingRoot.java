@@ -23,7 +23,9 @@ public class ScriptingRoot extends ScriptableObject {
 
     private void defineApi() {
         for (TypeDefinition type : apiDefinition.getTypes().values()) {
-            ScriptableObject.putProperty(this, type.getName(), new Constructor(session, type));
+            if (type.isInstantiatable()) {
+                ScriptableObject.putProperty(this, type.getName(), new Constructor(session, type));
+            }
         }
     }
 

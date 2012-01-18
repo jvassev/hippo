@@ -16,10 +16,17 @@ public class ForeignObject {
 
     private ScriptingSession proxysSession;
 
+    private TypeDefinition type;
+
     public ForeignObject(Proxy proxy, ServerScriptingSession self, SessionLocator locator) {
         this.proxy = proxy;
         this.self = self;
         this.locator = locator;
+        try {
+            this.type = getProxysSession().getApiDefinition().findType(proxy.getType());
+        } catch (RemoteException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 
@@ -91,5 +98,10 @@ public class ForeignObject {
     @Override
     public String toString() {
         return "ForeignObject [proxy=" + proxy + "]";
+    }
+
+
+    public TypeDefinition getType() {
+        return type;
     }
 }

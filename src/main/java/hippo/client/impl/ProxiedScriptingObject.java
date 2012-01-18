@@ -9,6 +9,7 @@ import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.mozilla.javascript.EvaluatorException;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 
@@ -55,7 +56,11 @@ public class ProxiedScriptingObject extends ScriptableObject {
         if (type.isMethod(name)) {
             throw new IllegalStateException("cannot override API method " + name);
         } else if (type.isProperty(name)) {
-            putProperty(name, value);
+            if (type.getProperty(name).isWritable()) {
+                putProperty(name, value);
+            } else {
+                throw new EvaluatorException("'" + name + "' is read-only");
+            }
         } else {
             super.put(name, start, value);
         }

@@ -1,6 +1,7 @@
 package hippo.example;
 
 import hippo.client.ApiDefinition;
+import hippo.client.PropertyDefinition;
 import hippo.client.TypeDefinition;
 import hippo.example.domain.Timer;
 import hippo.server.DefaultScriptingSessionFactory;
@@ -99,7 +100,9 @@ public class TimerServer {
         ApiDefinition apiDefinition = new ApiDefinition("Timer");
 
         TypeDefinition timer = new TypeDefinition("Timer");
-        timer.defineProperty("elapsed");
+        PropertyDefinition prop = new PropertyDefinition("elapsed");
+        prop.setWritable(false);
+        timer.defineProperty(prop);
         apiDefinition.defineType(timer);
 
         apiDefinition.defineVariable("timer");
