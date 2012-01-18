@@ -1,4 +1,4 @@
-package hippo.client.impl;
+package hippo;
 
 import java.util.HashSet;
 

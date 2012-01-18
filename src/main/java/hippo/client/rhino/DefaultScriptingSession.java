@@ -1,7 +1,11 @@
-package hippo.client;
+package hippo.client.rhino;
 
-import hippo.client.impl.ProxiedScriptingObject;
-import hippo.client.impl.Util;
+import hippo.Util;
+import hippo.client.ApiDefinition;
+import hippo.client.Proxy;
+import hippo.client.ScriptingSession;
+import hippo.client.ScriptingSessionFactory;
+import hippo.client.rhino.impl.ProxiedScriptingObject;
 
 import java.rmi.RemoteException;
 

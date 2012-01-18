@@ -1,4 +1,4 @@
-package hippo.client;
+package hippo.client.rhino;
 
 import java.rmi.RemoteException;
 import java.util.HashMap;

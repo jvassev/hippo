@@ -1,8 +1,9 @@
-package hippo.client;
+package hippo.server;
 
-import hippo.client.impl.Util;
-import hippo.server.ServerScriptingSession;
-import hippo.server.SessionLocator;
+import hippo.Util;
+import hippo.client.Proxy;
+import hippo.client.ScriptingSession;
+import hippo.client.TypeDefinition;
 
 import java.rmi.RemoteException;
 
@@ -18,7 +19,7 @@ public class ForeignObject {
 
     private TypeDefinition type;
 
-    public ForeignObject(Proxy proxy, ServerScriptingSession self, SessionLocator locator) {
+    ForeignObject(Proxy proxy, ServerScriptingSession self, SessionLocator locator) {
         this.proxy = proxy;
         this.self = self;
         this.locator = locator;

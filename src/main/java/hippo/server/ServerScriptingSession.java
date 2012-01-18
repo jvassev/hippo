@@ -1,10 +1,9 @@
 package hippo.server;
 
+import hippo.Util;
 import hippo.client.ApiDefinition;
-import hippo.client.ForeignObject;
 import hippo.client.Proxy;
 import hippo.client.ScriptingSession;
-import hippo.client.impl.Util;
 
 import java.io.Serializable;
 import java.rmi.RemoteException;

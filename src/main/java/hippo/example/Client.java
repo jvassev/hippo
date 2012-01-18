@@ -1,9 +1,9 @@
 package hippo.example;
 
-import hippo.client.DefaultScriptingSession;
-import hippo.client.ScriptingRoot;
 import hippo.client.ScriptingSessionFactory;
-import hippo.client.SessionCache;
+import hippo.client.rhino.DefaultScriptingSession;
+import hippo.client.rhino.ScriptingRoot;
+import hippo.client.rhino.SessionCache;
 import hippo.example.domain.LocalCounter;
 
 import java.rmi.RemoteException;

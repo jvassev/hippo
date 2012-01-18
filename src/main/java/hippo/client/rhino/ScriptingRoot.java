@@ -1,6 +1,8 @@
-package hippo.client;
+package hippo.client.rhino;
 
-import hippo.client.impl.Constructor;
+import hippo.client.ApiDefinition;
+import hippo.client.TypeDefinition;
+import hippo.client.rhino.impl.Constructor;
 
 import java.rmi.RemoteException;
 
