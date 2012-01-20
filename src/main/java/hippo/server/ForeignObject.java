@@ -90,8 +90,13 @@ public class ForeignObject {
 
     private ScriptingSession getProxysSession() {
         if (proxysSession == null) {
-            proxysSession = locator.lookup(proxy.getSessionId());
+            try {
+                proxysSession = locator.lookup(proxy.getSessionId());
+            } catch (RemoteException e) {
+                throw new RuntimeException(e);
+            }
         }
+
         return proxysSession;
     }
 

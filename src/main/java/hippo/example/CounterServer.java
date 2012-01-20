@@ -4,12 +4,12 @@ import hippo.client.ApiDefinition;
 import hippo.client.PropertyDefinition;
 import hippo.client.TypeDefinition;
 import hippo.example.domain.Counter;
-import hippo.server.DefaultScriptingSessionFactory;
+import hippo.server.AbstractScriptingSessionFactory;
+import hippo.server.RmiScriptingSessionFactory;
 import hippo.server.ServerScriptingSession;
 
 import java.rmi.AccessException;
 import java.rmi.AlreadyBoundException;
-import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -25,7 +25,7 @@ public class CounterServer {
         final Registry registry = LocateRegistry.getRegistry(server);
 
 
-        final DefaultScriptingSessionFactory service = new DefaultScriptingSessionFactory(registry) {
+        final AbstractScriptingSessionFactory service = new RmiScriptingSessionFactory(registry) {
 
             @Override
             protected ServerScriptingSession makeSession() {
@@ -97,19 +97,13 @@ public class CounterServer {
 
         service.defineApi(apiDefinition);
         service.defineClassMapping("Counter", Counter.class);
-        service.bind();
+        service.start();
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
 
             @Override
             public void run() {
-                try {
-                    service.unbind();
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                } catch (NotBoundException e) {
-                    e.printStackTrace();
-                }
+                service.stop();
             }
         });
     }
