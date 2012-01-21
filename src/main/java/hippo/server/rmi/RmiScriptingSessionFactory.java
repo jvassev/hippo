@@ -1,7 +1,9 @@
-package hippo.server;
+package hippo.server.rmi;
 
 import hippo.client.ScriptingSession;
 import hippo.client.ScriptingSessionFactory;
+import hippo.server.AbstractScriptingSessionFactory;
+import hippo.server.ServerScriptingSession;
 
 import java.rmi.AccessException;
 import java.rmi.AlreadyBoundException;

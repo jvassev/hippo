@@ -4,6 +4,7 @@ import hippo.client.ScriptingSessionFactory;
 import hippo.client.rhino.DefaultScriptingSession;
 import hippo.client.rhino.ScriptingRoot;
 import hippo.client.rhino.SessionCache;
+import hippo.client.rmi.RmiScriptingSessionFactoryFinder;
 import hippo.example.domain.LocalCounter;
 
 import java.rmi.RemoteException;
@@ -19,9 +20,10 @@ public class Client {
     public static void main(String[] args) throws Exception {
         Registry registry = findRegistry(args);
 
-        ScriptingSessionFactory counterFactory = (ScriptingSessionFactory) registry.lookup("Counter");
-        ScriptingSessionFactory timerFactory = (ScriptingSessionFactory) registry.lookup("Timer");
-        ScriptingSessionFactory describerFactory = (ScriptingSessionFactory) registry.lookup("Describer");
+        RmiScriptingSessionFactoryFinder finder = new RmiScriptingSessionFactoryFinder(registry);
+        ScriptingSessionFactory counterFactory = finder.findFactory("Counter");
+        ScriptingSessionFactory timerFactory = finder.findFactory("Timer");
+        ScriptingSessionFactory describerFactory = finder.findFactory("Describer");
 
 
         Context cx = enterContext();

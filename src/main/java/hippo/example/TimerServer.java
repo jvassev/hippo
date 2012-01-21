@@ -5,8 +5,8 @@ import hippo.client.PropertyDefinition;
 import hippo.client.TypeDefinition;
 import hippo.example.domain.Timer;
 import hippo.server.AbstractScriptingSessionFactory;
-import hippo.server.RmiScriptingSessionFactory;
 import hippo.server.ServerScriptingSession;
+import hippo.server.rmi.RmiScriptingSessionFactory;
 
 import java.rmi.AccessException;
 import java.rmi.AlreadyBoundException;
