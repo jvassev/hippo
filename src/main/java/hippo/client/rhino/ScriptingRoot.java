@@ -34,11 +34,13 @@ public class ScriptingRoot extends ScriptableObject {
     @Override
     public Object get(String name, Scriptable start) {
         if (apiDefinition.variableDefined(name)) {
+            Object value;
             try {
-                return session.toJs(session.getVariable(name));
+                value = session.getVariable(name);
             } catch (RemoteException e) {
-                throw new RuntimeException(e);
+                throw new RuntimeException("error connecting to API server", e);
             }
+            return session.toJs(value);
         } else {
             return super.get(name, start);
         }

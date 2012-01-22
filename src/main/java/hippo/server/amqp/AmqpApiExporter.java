@@ -29,28 +29,24 @@ public abstract class AmqpApiExporter extends ApiExporter {
     }
 
     @Override
-    public void start() {
-        try {
-            String exchange = getApiDefinition().getName();
-            String queue = getApiDefinition().getName() + "-request";
-            Channel channel = connection.createChannel();
-            channel.exchangeDeclare(exchange, "fanout");
-            channel.queueDeclare(queue, false, false, true, null);
-            channel.queueBind(queue, exchange, "");
+    public void start() throws IOException {
+        String exchange = getApiDefinition().getName();
+        String queue = getApiDefinition().getName() + "-request";
+        Channel channel = connection.createChannel();
+        channel.exchangeDeclare(exchange, "fanout");
+        channel.queueDeclare(queue, false, false, true, null);
+        channel.queueBind(queue, exchange, "");
 
-            server = new RpcServer(channel, queue) {
+        server = new RpcServer(channel, queue) {
 
-                @Override
-                public byte[] handleCall(byte[] requestBody, BasicProperties replyProperties) {
-                    Response res = rpc((Request) Serializer.deserialize(requestBody));
-                    return Serializer.serialize(res);
-                }
-            };
+            @Override
+            public byte[] handleCall(byte[] requestBody, BasicProperties replyProperties) {
+                Response res = rpc((Request) Serializer.deserialize(requestBody));
+                return Serializer.serialize(res);
+            }
+        };
 
-            server.start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        server.start();
     }
 
     private Response rpc(Request request) {

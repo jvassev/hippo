@@ -32,7 +32,7 @@ public class Method extends ScriptableObject implements Function {
         try {
             res = session.invokeMethod(proxy, name, session.toProxies(args));
         } catch (RemoteException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("error calling method " + name, e);
         }
         return session.toJs(res);
     }

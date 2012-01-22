@@ -1,5 +1,6 @@
 package hippo.client.rhino.impl;
 
+import hippo.client.ApiDefinition;
 import hippo.client.Proxy;
 import hippo.client.ScriptingSession;
 import hippo.client.TypeDefinition;
@@ -9,7 +10,6 @@ import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.mozilla.javascript.EvaluatorException;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 
@@ -28,11 +28,15 @@ public class ProxiedScriptingObject extends ScriptableObject {
     public ProxiedScriptingObject(DefaultScriptingSession session, Proxy proxy) {
         this.session = session;
         this.proxy = proxy;
+
+        ApiDefinition apiDefinition;
         try {
-            this.type = session.getApiDefinition().findType(proxy.getType());
+            apiDefinition = session.getApiDefinition();
         } catch (RemoteException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("could not retrieve API definitor from server", e);
         }
+
+        this.type = apiDefinition.findType(proxy.getType());
     }
 
     @Override
@@ -59,7 +63,7 @@ public class ProxiedScriptingObject extends ScriptableObject {
             if (type.getProperty(name).isWritable()) {
                 putProperty(name, value);
             } else {
-                throw new EvaluatorException("'" + name + "' is read-only");
+                throw new RuntimeException("'" + name + "' is read-only");
             }
         } else {
             super.put(name, start, value);
@@ -72,7 +76,7 @@ public class ProxiedScriptingObject extends ScriptableObject {
         try {
             session.putProperty(proxy, name, args[0]);
         } catch (RemoteException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("could not put property in API", e);
         }
     }
 
@@ -81,7 +85,7 @@ public class ProxiedScriptingObject extends ScriptableObject {
             Object res = session.getProperty(proxy, name);
             return session.toJs(res);
         } catch (RemoteException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("could not get property in API", e);
         }
     }
 

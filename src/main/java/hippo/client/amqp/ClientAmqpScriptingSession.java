@@ -24,16 +24,12 @@ public class ClientAmqpScriptingSession implements ScriptingSession {
 
     private final String sessionId;
 
-    public ClientAmqpScriptingSession(Channel channel, String apiName, String sessionId) {
+    public ClientAmqpScriptingSession(Channel channel, String apiName, String sessionId) throws IOException {
         this.channel = channel;
         this.apiName = apiName;
         this.sessionId = sessionId;
-        try {
-            rpc = new RpcClient(channel, apiName, "");
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ShutdownSignalException e) {
-        }
+
+        rpc = new RpcClient(channel, apiName, "");
 
         Request req = makeRequest(Request.openSession);
         doRpcAndHandleError(req);
@@ -47,6 +43,7 @@ public class ClientAmqpScriptingSession implements ScriptingSession {
         try {
             rpc.close();
         } catch (IOException e) {
+            // ignore
         }
     }
 
@@ -66,7 +63,7 @@ public class ClientAmqpScriptingSession implements ScriptingSession {
 
     private Object resultOrThrow(Response response) {
         if (response.getException() != null) {
-            throw new RuntimeException(response.getException());
+            throw new RuntimeException("error occured in API server", response.getException());
         } else {
             return response.getResult();
         }
@@ -93,7 +90,6 @@ public class ClientAmqpScriptingSession implements ScriptingSession {
     public ApiDefinition getApiDefinition() {
         if (apiDefinition == null) {
             Request req = makeRequest(Request.getApiDefinition);
-
             apiDefinition = (ApiDefinition) doRpcAndHandleError(req);
         }
         return apiDefinition;
@@ -101,7 +97,8 @@ public class ClientAmqpScriptingSession implements ScriptingSession {
 
 
     private Response rpc(Request request) throws ShutdownSignalException, IOException, TimeoutException {
-        return (Response) Serializer.deserialize(rpc.primitiveCall(Serializer.serialize(request)));
+        byte[] result = rpc.primitiveCall(Serializer.serialize(request));
+        return (Response) Serializer.deserialize(result);
     }
 
     @Override
@@ -136,13 +133,17 @@ public class ClientAmqpScriptingSession implements ScriptingSession {
         try {
             response = rpc(r);
         } catch (ShutdownSignalException e) {
-            throw new RuntimeException(e);
+            return handleRpcException(e);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            return handleRpcException(e);
         } catch (TimeoutException e) {
-            throw new RuntimeException(e);
+            return handleRpcException(e);
         }
 
         return resultOrThrow(response);
+    }
+
+    private Object handleRpcException(Exception e) {
+        throw new RuntimeException("error in RPC", e);
     }
 }

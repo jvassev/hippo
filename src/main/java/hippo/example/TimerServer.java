@@ -76,14 +76,6 @@ public class TimerServer {
         service.defineApi(apiDefinition);
         service.defineClassMapping("Timer", Timer.class);
         service.start();
-
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-
-            @Override
-            public void run() {
-                service.stop();
-            }
-        });
     }
 
     private static ApiDefinition defineApi() {

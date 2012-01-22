@@ -70,14 +70,6 @@ public class DescriberServer {
         service.defineApi(apiDefinition);
         service.defineClassMapping("Describer", Describer.class);
         service.start();
-
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-
-            @Override
-            public void run() {
-                service.stop();
-            }
-        });
     }
 
 

@@ -34,6 +34,7 @@ public class DefaultScriptingSession implements ScriptingSession {
         try {
             delegate.end();
         } catch (RemoteException e) {
+            // ignore
         }
     }
 
@@ -46,7 +47,7 @@ public class DefaultScriptingSession implements ScriptingSession {
             Proxy proxy = (Proxy) res;
             return new ProxiedScriptingObject(cache.findSession(proxy.getSessionId()), proxy);
         } else {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("cannot convert to JavaScript the object" + res);
         }
     }
 

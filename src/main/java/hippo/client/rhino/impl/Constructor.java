@@ -35,7 +35,7 @@ public class Constructor extends ScriptableObject implements Function {
             Proxy proxy = session.newObject(type.getName(), session.toProxies(args));
             return new ProxiedScriptingObject(session, proxy);
         } catch (RemoteException e) {
-            throw new RuntimeException();
+            throw new RuntimeException("error calling constructor of " + type.getName(), e);
         }
     }
 

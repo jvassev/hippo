@@ -28,7 +28,7 @@ class ClientAmqpScriptingSessionFactory implements ScriptingSessionFactory {
             Channel channel = connection.createChannel();
             return new ClientAmqpScriptingSession(channel, apiName, sessionId);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("error opening session", e);
         }
     }
 

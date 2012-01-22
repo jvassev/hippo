@@ -101,7 +101,7 @@ public class RpcServer {
                 }
             }
         };
-        _channel.basicConsume(_queueName, consumer);
+        _channel.basicConsume(_queueName, true, consumer);
         return consumer;
     }
 

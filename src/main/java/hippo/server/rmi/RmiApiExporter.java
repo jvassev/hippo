@@ -6,6 +6,7 @@ import hippo.server.ApiExporter;
 import hippo.server.ServerScriptingSession;
 import hippo.server.SessionLocator;
 
+import java.io.IOException;
 import java.rmi.AccessException;
 import java.rmi.AlreadyBoundException;
 import java.rmi.NotBoundException;
@@ -17,7 +18,6 @@ import java.util.UUID;
 
 
 public abstract class RmiApiExporter extends ApiExporter implements ScriptingSessionFactory, SessionLocator {
-
 
     private final Registry registry;
 
@@ -41,7 +41,13 @@ public abstract class RmiApiExporter extends ApiExporter implements ScriptingSes
 
     @Override
     public ScriptingSession openSession() throws RemoteException {
-        ServerScriptingSession session = makeSession();
+        ServerScriptingSession session;
+        try {
+            session = makeSession();
+        } catch (IOException e) {
+            throw new RemoteException("", e);
+        }
+
         String id = generateSessionId();
         session.setId(id);
 
@@ -50,48 +56,44 @@ public abstract class RmiApiExporter extends ApiExporter implements ScriptingSes
         session.defineClassMapping(getClassMapping());
         session.setLocator(this);
         session.start();
-        registerSession(session);
+        try {
+            registerSession(session);
+        } catch (AlreadyBoundException e) {
+            throw new RemoteException("", e);
+        }
         return session;
     }
 
-    protected void registerSession(ServerScriptingSession session) {
-        try {
-            Remote stub = UnicastRemoteObject.exportObject(session, 0);
-            registry.bind(session.getId(), stub);
-        } catch (AccessException e) {
-            throw new RuntimeException(e);
-        } catch (RemoteException e) {
-            throw new RuntimeException(e);
-        } catch (AlreadyBoundException e) {
-            throw new RuntimeException(e);
-        }
+    protected void registerSession(ServerScriptingSession session) throws RemoteException, AlreadyBoundException {
+        Remote stub = UnicastRemoteObject.exportObject(session, 0);
+        registry.bind(session.getId(), stub);
     }
 
     @Override
-    public void start() {
+    public void start() throws IOException {
         try {
             ScriptingSessionFactory stub = (ScriptingSessionFactory) UnicastRemoteObject.exportObject(this, 0);
             registry.bind(getApiDefinition().getName(), stub);
         } catch (AccessException e) {
-            throw new RuntimeException(e);
+            throw new IOException(e);
         } catch (RemoteException e) {
-            throw new RuntimeException(e);
+            throw new IOException(e);
         } catch (AlreadyBoundException e) {
-            throw new RuntimeException(e);
+            throw new IOException(e);
         }
     }
 
 
     @Override
-    public void stop() {
+    public void stop() throws IOException {
         try {
             registry.unbind(getApiDefinition().getName());
         } catch (AccessException e) {
-            throw new RuntimeException(e);
+            throw new IOException(e);
         } catch (RemoteException e) {
-            throw new RuntimeException(e);
+            throw new IOException(e);
         } catch (NotBoundException e) {
-            throw new RuntimeException(e);
+            throw new IOException(e);
         }
     }
 }

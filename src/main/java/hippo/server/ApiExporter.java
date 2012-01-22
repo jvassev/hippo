@@ -2,6 +2,7 @@ package hippo.server;
 
 import hippo.client.ApiDefinition;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,9 +35,9 @@ public abstract class ApiExporter {
         return apiDefinition;
     }
 
-    public abstract void start();
+    public abstract void start() throws IOException;
 
-    public abstract void stop();
+    public abstract void stop() throws IOException;
 
-    public abstract ServerScriptingSession makeSession();
+    public abstract ServerScriptingSession makeSession() throws IOException;
 }

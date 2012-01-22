@@ -100,14 +100,6 @@ public class CounterServer {
         service.defineApi(apiDefinition);
         service.defineClassMapping("Counter", Counter.class);
         service.start();
-
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-
-            @Override
-            public void run() {
-                service.stop();
-            }
-        });
     }
 
     public static Connection makeConnection() throws IOException {

@@ -10,9 +10,9 @@ public class ApiDefinition implements Serializable {
 
     private static final long serialVersionUID = -3298264233533615798L;
 
-    private Map<String, TypeDefinition> types;
+    private final Map<String, TypeDefinition> types;
 
-    private Set<String> variables;
+    private final Set<String> variables;
 
     private final String name;
 

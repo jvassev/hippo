@@ -31,7 +31,7 @@ public class LocalSessionLocator implements SessionLocator {
                 session = new ClientAmqpScriptingSession(connection.createChannel(), apiName, sessionId);
                 foreginSessionByApiName.put(sessionId, session);
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                throw new RemoteException("", e);
             }
         }
 
