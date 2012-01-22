@@ -7,16 +7,16 @@ public class Response implements Serializable {
 
     private static final long serialVersionUID = -714564076095163731L;
 
-    private Serializable result;
+    private Object result;
 
     private Throwable exception;
 
-    public Serializable getResult() {
+    public Object getResult() {
         return result;
     }
 
 
-    public void setResult(Serializable result) {
+    public void setResult(Object result) {
         this.result = result;
     }
 

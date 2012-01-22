@@ -44,7 +44,6 @@ public class ApiDefinition implements Serializable {
         return types.get(name);
     }
 
-
     public String getName() {
         return name;
     }

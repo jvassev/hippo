@@ -54,6 +54,7 @@ public class Client {
             System.out.println(System.currentTimeMillis() - start);
         } finally {
             Context.exit();
+            System.exit(0);
         }
     }
 

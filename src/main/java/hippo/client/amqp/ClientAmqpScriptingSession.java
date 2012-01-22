@@ -35,17 +35,19 @@ public class ClientAmqpScriptingSession implements ScriptingSession {
         } catch (ShutdownSignalException e) {
         }
 
-        Request req = makeRequest();
-        req.setRequestType(Request.openSession);
+        Request req = makeRequest(Request.openSession);
         doRpcAndHandleError(req);
     }
 
     @Override
     public void end() {
-        Request req = makeRequest();
-        req.setRequestType(Request.closeSession);
+        Request req = makeRequest(Request.closeSession);
 
         doRpcAndHandleError(req);
+        try {
+            rpc.close();
+        } catch (IOException e) {
+        }
     }
 
     @Override
@@ -55,8 +57,7 @@ public class ClientAmqpScriptingSession implements ScriptingSession {
 
     @Override
     public Proxy newObject(String type, Object[] args) {
-        Request req = makeRequest();
-        req.setRequestType(Request.newObject);
+        Request req = makeRequest(Request.newObject);
         req.setTypeName(type);
         req.setArgs(args);
 
@@ -71,16 +72,16 @@ public class ClientAmqpScriptingSession implements ScriptingSession {
         }
     }
 
-    private Request makeRequest() {
+    private Request makeRequest(int type) {
         Request request = new Request();
         request.setSessionId(sessionId);
+        request.setRequestType(type);
         return request;
     }
 
     @Override
     public Object invokeMethod(Proxy self, String method, Object[] args) {
-        Request req = makeRequest();
-        req.setRequestType(Request.invokeMethod);
+        Request req = makeRequest(Request.invokeMethod);
         req.setSelf(self);
         req.setMethod(method);
         req.setArgs(args);
@@ -91,8 +92,7 @@ public class ClientAmqpScriptingSession implements ScriptingSession {
     @Override
     public ApiDefinition getApiDefinition() {
         if (apiDefinition == null) {
-            Request req = makeRequest();
-            req.setRequestType(Request.getApiDefinition);
+            Request req = makeRequest(Request.getApiDefinition);
 
             apiDefinition = (ApiDefinition) doRpcAndHandleError(req);
         }
@@ -106,8 +106,7 @@ public class ClientAmqpScriptingSession implements ScriptingSession {
 
     @Override
     public Object getProperty(Proxy self, String property) {
-        Request req = makeRequest();
-        req.setRequestType(Request.getProperty);
+        Request req = makeRequest(Request.getProperty);
         req.setPropertyName(property);
         req.setSelf(self);
 
@@ -116,8 +115,7 @@ public class ClientAmqpScriptingSession implements ScriptingSession {
 
     @Override
     public void putProperty(Proxy self, String property, Object value) {
-        Request req = makeRequest();
-        req.setRequestType(Request.setProperty);
+        Request req = makeRequest(Request.setProperty);
         req.setPropertyName(property);
         req.setSelf(self);
         req.setValue(value);
@@ -127,8 +125,7 @@ public class ClientAmqpScriptingSession implements ScriptingSession {
 
     @Override
     public Object getVariable(String name) {
-        Request req = makeRequest();
-        req.setRequestType(Request.getVariable);
+        Request req = makeRequest(Request.getVariable);
         req.setVariableName(name);
 
         return doRpcAndHandleError(req);
