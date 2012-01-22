@@ -4,7 +4,6 @@ import hippo.client.ScriptingSession;
 import hippo.client.ScriptingSessionFactory;
 
 import java.io.IOException;
-import java.rmi.RemoteException;
 import java.util.UUID;
 
 import com.rabbitmq.client.Channel;
@@ -23,7 +22,7 @@ class ClientAmqpScriptingSessionFactory implements ScriptingSessionFactory {
     }
 
     @Override
-    public ScriptingSession openSession() throws RemoteException {
+    public ScriptingSession openSession() {
         try {
             String sessionId = generateSessionId();
             Channel channel = connection.createChannel();

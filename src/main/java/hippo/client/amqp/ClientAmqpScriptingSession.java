@@ -30,32 +30,22 @@ public class ClientAmqpScriptingSession implements ScriptingSession {
         this.sessionId = sessionId;
         try {
             rpc = new RpcClient(channel, apiName, "");
-            Request request = makeRequest();
-            request.setRequestType(Request.openSession);
-            rpc(request);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ShutdownSignalException e) {
-            e.printStackTrace();
-        } catch (TimeoutException e) {
-            e.printStackTrace();
         }
+
+        Request req = makeRequest();
+        req.setRequestType(Request.openSession);
+        doRpcAndHandleError(req);
     }
 
     @Override
     public void end() {
-        try {
-            Request r = makeRequest();
-            r.setRequestType(Request.closeSession);
-            rpc(r);
-            channel.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ShutdownSignalException e) {
-            e.printStackTrace();
-        } catch (TimeoutException e) {
-            e.printStackTrace();
-        }
+        Request req = makeRequest();
+        req.setRequestType(Request.closeSession);
+
+        doRpcAndHandleError(req);
     }
 
     @Override
@@ -65,20 +55,20 @@ public class ClientAmqpScriptingSession implements ScriptingSession {
 
     @Override
     public Proxy newObject(String type, Object[] args) {
-        Request r = makeRequest();
-        r.setRequestType(Request.newObject);
-        r.setTypeName(type);
-        r.setArgs(args);
-        try {
-            return (Proxy) rpc(r).getResult();
-        } catch (ShutdownSignalException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (TimeoutException e) {
-            e.printStackTrace();
+        Request req = makeRequest();
+        req.setRequestType(Request.newObject);
+        req.setTypeName(type);
+        req.setArgs(args);
+
+        return (Proxy) doRpcAndHandleError(req);
+    }
+
+    private Object resultOrThrow(Response response) {
+        if (response.getException() != null) {
+            throw new RuntimeException(response.getException());
+        } else {
+            return response.getResult();
         }
-        throw new RuntimeException();
     }
 
     private Request makeRequest() {
@@ -89,37 +79,22 @@ public class ClientAmqpScriptingSession implements ScriptingSession {
 
     @Override
     public Object invokeMethod(Proxy self, String method, Object[] args) {
-        Request r = makeRequest();
-        r.setRequestType(Request.invokeMethod);
-        r.setSelf(self);
-        r.setMethod(method);
-        r.setArgs(args);
-        try {
-            return rpc(r).getResult();
-        } catch (ShutdownSignalException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (TimeoutException e) {
-            e.printStackTrace();
-        }
-        throw new RuntimeException();
+        Request req = makeRequest();
+        req.setRequestType(Request.invokeMethod);
+        req.setSelf(self);
+        req.setMethod(method);
+        req.setArgs(args);
+
+        return doRpcAndHandleError(req);
     }
 
     @Override
     public ApiDefinition getApiDefinition() {
         if (apiDefinition == null) {
-            Request r = makeRequest();
-            r.setRequestType(Request.getApiDefinition);
-            try {
-                apiDefinition = (ApiDefinition) rpc(r).getResult();
-            } catch (ShutdownSignalException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (TimeoutException e) {
-                e.printStackTrace();
-            }
+            Request req = makeRequest();
+            req.setRequestType(Request.getApiDefinition);
+
+            apiDefinition = (ApiDefinition) doRpcAndHandleError(req);
         }
         return apiDefinition;
     }
@@ -131,55 +106,46 @@ public class ClientAmqpScriptingSession implements ScriptingSession {
 
     @Override
     public Object getProperty(Proxy self, String property) {
-        Request r = makeRequest();
-        r.setRequestType(Request.getProperty);
-        r.setPropertyName(property);
-        r.setSelf(self);
-        try {
-            return rpc(r).getResult();
-        } catch (ShutdownSignalException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (TimeoutException e) {
-            e.printStackTrace();
-        }
-        throw new RuntimeException();
+        Request req = makeRequest();
+        req.setRequestType(Request.getProperty);
+        req.setPropertyName(property);
+        req.setSelf(self);
+
+        return doRpcAndHandleError(req);
     }
 
     @Override
     public void putProperty(Proxy self, String property, Object value) {
-        Request r = makeRequest();
-        r.setRequestType(Request.setProperty);
-        r.setPropertyName(property);
-        r.setSelf(self);
-        r.setValue(value);
-        try {
-            rpc(r).getResult();
-        } catch (ShutdownSignalException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (TimeoutException e) {
-            e.printStackTrace();
-        }
-        throw new RuntimeException();
+        Request req = makeRequest();
+        req.setRequestType(Request.setProperty);
+        req.setPropertyName(property);
+        req.setSelf(self);
+        req.setValue(value);
+
+        doRpcAndHandleError(req);
     }
 
     @Override
     public Object getVariable(String name) {
-        Request r = makeRequest();
-        r.setRequestType(Request.getVariable);
-        r.setVariableName(name);
+        Request req = makeRequest();
+        req.setRequestType(Request.getVariable);
+        req.setVariableName(name);
+
+        return doRpcAndHandleError(req);
+    }
+
+    private Object doRpcAndHandleError(Request r) {
+        Response response;
         try {
-            return rpc(r).getResult();
+            response = rpc(r);
         } catch (ShutdownSignalException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         } catch (TimeoutException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-        throw new RuntimeException();
+
+        return resultOrThrow(response);
     }
 }

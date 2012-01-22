@@ -77,13 +77,13 @@ public abstract class AmqpApiExporter extends ApiExporter implements SessionLoca
             ServerScriptingSession session = findLocalSession(request);
             if (session == null) {
                 session = makeSession();
+                session.setId(request.getSessionId());
+                session.defineApi(getApiDefinition());
+                session.defineClassMapping(getClassMapping());
+                session.setLocator(this);
+                session.start();
+                registerSession(session);
             }
-            session.setId(request.getSessionId());
-            session.defineApi(getApiDefinition());
-            session.defineClassMapping(getClassMapping());
-            session.setLocator(this);
-            session.start();
-            registerSession(session);
         } else if (request.getRequestType() == Request.getApiDefinition) {
             response.setResult(getApiDefinition());
         } else if (request.getRequestType() == Request.getVariable) {

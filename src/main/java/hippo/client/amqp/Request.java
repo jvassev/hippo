@@ -9,7 +9,7 @@ public class Request implements Serializable {
 
     private static final long serialVersionUID = 6303471534106933878L;
 
-    public static final int getApiDefinition = 0;
+    public static final int getApiDefinition = 8;
 
     public static final int getProperty = 1;
 
