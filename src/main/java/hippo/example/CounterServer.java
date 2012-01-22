@@ -4,31 +4,33 @@ import hippo.client.ApiDefinition;
 import hippo.client.PropertyDefinition;
 import hippo.client.TypeDefinition;
 import hippo.example.domain.Counter;
-import hippo.server.AbstractScriptingSessionFactory;
+import hippo.server.ApiExporter;
 import hippo.server.ServerScriptingSession;
-import hippo.server.rmi.RmiScriptingSessionFactory;
+import hippo.server.amqp.AmqpApiExporter;
 
-import java.rmi.AccessException;
+import java.io.IOException;
 import java.rmi.AlreadyBoundException;
-import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
 import java.util.Arrays;
+
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
 
 public class CounterServer {
 
-    public static void main(String[] args) throws AccessException, RemoteException, AlreadyBoundException {
-        String server = "localhost";
-        if (args.length == 1) {
-            server = args[0];
-        }
-        final Registry registry = LocateRegistry.getRegistry(server);
+    public static void main(String[] args) throws AlreadyBoundException, IOException {
+        // String server = "localhost";
+        // if (args.length == 1) {
+        // server = args[0];
+        // }
+        // final Registry registry = LocateRegistry.getRegistry(server);
 
+        final ApiExporter service = new AmqpApiExporter(makeConnection()) {
 
-        final AbstractScriptingSessionFactory service = new RmiScriptingSessionFactory(registry) {
+            // final AbstractScriptingSessionFactory service = new
+            // RmiScriptingSessionFactory(registry) {
 
             @Override
-            protected ServerScriptingSession makeSession() {
+            public ServerScriptingSession makeSession() {
                 return new ServerScriptingSession() {
 
                     @Override
@@ -106,6 +108,16 @@ public class CounterServer {
                 service.stop();
             }
         });
+    }
+
+    public static Connection makeConnection() throws IOException {
+        ConnectionFactory cf = new ConnectionFactory();
+        cf.setHost("localhost");
+        cf.setPort(5672);
+        cf.setUsername("guest");
+        cf.setPassword("guest");
+        cf.setVirtualHost("/");
+        return cf.newConnection();
     }
 
     private static ApiDefinition defineApi() {

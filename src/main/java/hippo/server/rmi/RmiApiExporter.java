@@ -2,8 +2,9 @@ package hippo.server.rmi;
 
 import hippo.client.ScriptingSession;
 import hippo.client.ScriptingSessionFactory;
-import hippo.server.AbstractScriptingSessionFactory;
+import hippo.server.ApiExporter;
 import hippo.server.ServerScriptingSession;
+import hippo.server.SessionLocator;
 
 import java.rmi.AccessException;
 import java.rmi.AlreadyBoundException;
@@ -12,14 +13,15 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.UUID;
 
 
-public abstract class RmiScriptingSessionFactory extends AbstractScriptingSessionFactory {
+public abstract class RmiApiExporter extends ApiExporter implements ScriptingSessionFactory, SessionLocator {
 
 
     private final Registry registry;
 
-    public RmiScriptingSessionFactory(Registry registry) {
+    public RmiApiExporter(Registry registry) {
         this.registry = registry;
     }
 
@@ -32,7 +34,26 @@ public abstract class RmiScriptingSessionFactory extends AbstractScriptingSessio
         }
     }
 
+    private String generateSessionId() {
+        return getApiDefinition().getName() + "/" + UUID.randomUUID().toString();
+    }
+
+
     @Override
+    public ScriptingSession openSession() throws RemoteException {
+        ServerScriptingSession session = makeSession();
+        String id = generateSessionId();
+        session.setId(id);
+
+        session.defineApi(getApiDefinition());
+
+        session.defineClassMapping(getClassMapping());
+        session.setLocator(this);
+        session.start();
+        registerSession(session);
+        return session;
+    }
+
     protected void registerSession(ServerScriptingSession session) {
         try {
             Remote stub = UnicastRemoteObject.exportObject(session, 0);

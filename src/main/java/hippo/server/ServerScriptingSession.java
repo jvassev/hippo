@@ -6,7 +6,6 @@ import hippo.client.Proxy;
 import hippo.client.ScriptingSession;
 
 import java.io.Serializable;
-import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -35,7 +34,7 @@ public abstract class ServerScriptingSession implements ScriptingSession {
     }
 
     @Override
-    public ApiDefinition getApiDefinition() throws RemoteException {
+    public ApiDefinition getApiDefinition() {
         return apiDefinition;
     }
 
@@ -78,14 +77,14 @@ public abstract class ServerScriptingSession implements ScriptingSession {
     }
 
     @Override
-    public Object getProperty(Proxy self, String property) throws RemoteException {
+    public Object getProperty(Proxy self, String property) {
         Object instance = getRealObject(self);
         Object res = getPropertyReal(instance, property);
         return toProxy(res);
     }
 
     @Override
-    public void putProperty(Proxy self, String property, Object value) throws RemoteException {
+    public void putProperty(Proxy self, String property, Object value) {
         Object instance = getRealObject(self);
         putPropertyReal(instance, property, unProxy(value));
     }
@@ -139,12 +138,12 @@ public abstract class ServerScriptingSession implements ScriptingSession {
         }
     }
 
-    void defineApi(ApiDefinition apiDefinition) {
+    public void defineApi(ApiDefinition apiDefinition) {
         this.apiDefinition = apiDefinition;
     }
 
     @Override
-    public Object getVariable(String name) throws RemoteException {
+    public Object getVariable(String name) {
         Object var = variables.get(name);
         if (var == null) {
             var = getVariableReal(name);
@@ -155,15 +154,15 @@ public abstract class ServerScriptingSession implements ScriptingSession {
     }
 
     @Override
-    public String getId() throws RemoteException {
+    public String getId() {
         return id;
     }
 
-    void setId(String id) {
+    public void setId(String id) {
         this.id = id;
     }
 
-    void defineClassMapping(Map<String, Class<?>> mapping) {
+    public void defineClassMapping(Map<String, Class<?>> mapping) {
         for (Map.Entry<String, Class<?>> e : mapping.entrySet()) {
             typesToClasses.put(e.getKey(), e.getValue());
         }
@@ -176,7 +175,7 @@ public abstract class ServerScriptingSession implements ScriptingSession {
     public void end() {
     }
 
-    void setLocator(SessionLocator locator) {
+    public void setLocator(SessionLocator locator) {
         this.locator = locator;
     }
 

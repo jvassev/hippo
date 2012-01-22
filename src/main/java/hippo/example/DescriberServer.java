@@ -3,30 +3,26 @@ package hippo.example;
 import hippo.client.ApiDefinition;
 import hippo.client.TypeDefinition;
 import hippo.example.domain.Describer;
-import hippo.server.AbstractScriptingSessionFactory;
+import hippo.server.ApiExporter;
 import hippo.server.ServerScriptingSession;
-import hippo.server.rmi.RmiScriptingSessionFactory;
+import hippo.server.amqp.AmqpApiExporter;
 
-import java.rmi.AccessException;
+import java.io.IOException;
 import java.rmi.AlreadyBoundException;
-import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
 
 public class DescriberServer {
 
-    public static void main(String[] args) throws AccessException, RemoteException, AlreadyBoundException {
-        String server = "localhost";
-        if (args.length == 1) {
-            server = args[0];
-        }
-        final Registry registry = LocateRegistry.getRegistry(server);
+    public static void main(String[] args) throws AlreadyBoundException, IOException {
+        // String server = "localhost";
+        // if (args.length == 1) {
+        // server = args[0];
+        // }
+        // final Registry registry = LocateRegistry.getRegistry(server);
 
-
-        final AbstractScriptingSessionFactory service = new RmiScriptingSessionFactory(registry) {
+        final ApiExporter service = new AmqpApiExporter(CounterServer.makeConnection()) {
 
             @Override
-            protected ServerScriptingSession makeSession() {
+            public ServerScriptingSession makeSession() {
                 return new ServerScriptingSession() {
 
                     @Override
@@ -83,6 +79,7 @@ public class DescriberServer {
             }
         });
     }
+
 
     private static ApiDefinition defineApi() {
         ApiDefinition apiDefinition = new ApiDefinition("Describer");
