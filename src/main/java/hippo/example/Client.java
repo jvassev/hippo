@@ -1,7 +1,8 @@
 package hippo.example;
 
 import hippo.client.ScriptingSessionFactory;
-import hippo.client.amqp.AmqpScriptingSessionFactoryFinder;
+import hippo.client.ScriptingSessionFactoryFinder;
+import hippo.client.jms.JmsScriptingSessionFactoryFinder;
 import hippo.client.rhino.DefaultScriptingSession;
 import hippo.client.rhino.ScriptingRoot;
 import hippo.client.rhino.SessionCache;
@@ -11,7 +12,16 @@ import java.io.IOException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.util.HashMap;
+import java.util.Map;
 
+import javax.jms.JMSException;
+
+import org.hornetq.api.core.TransportConfiguration;
+import org.hornetq.api.jms.HornetQJMSClient;
+import org.hornetq.api.jms.JMSFactoryType;
+import org.hornetq.core.remoting.impl.netty.NettyConnectorFactory;
+import org.hornetq.jms.client.HornetQConnectionFactory;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
@@ -22,17 +32,13 @@ import com.rabbitmq.client.ConnectionFactory;
 public class Client {
 
     public static void main(String[] args) throws Exception {
-        // Registry registry = findRegistry(args);
-        // RmiScriptingSessionFactoryFinder finder = new
-        // RmiScriptingSessionFactoryFinder(registry);
-        // ScriptingSessionFactory counterFactory =
-        // finder.findFactory("Counter");
-        // ScriptingSessionFactory timerFactory = finder.findFactory("Timer");
-        // ScriptingSessionFactory describerFactory =
-        // finder.findFactory("Describer");
 
-        Connection connection = makeConnection();
-        AmqpScriptingSessionFactoryFinder finder = new AmqpScriptingSessionFactoryFinder(connection);
+        // ScriptingSessionFactoryFinder finder = new
+        // AmqpScriptingSessionFactoryFinder(makeConnection());
+        // ScriptingSessionFactoryFinder finder = new
+        // RmiScriptingSessionFactoryFinder(makeRegistry());
+        ScriptingSessionFactoryFinder finder = new JmsScriptingSessionFactoryFinder(makeJmsConnection());
+
         ScriptingSessionFactory counterFactory = finder.findFactory("Counter");
         ScriptingSessionFactory timerFactory = finder.findFactory("Timer");
         ScriptingSessionFactory describerFactory = finder.findFactory("Describer");
@@ -54,7 +60,6 @@ public class Client {
             System.out.println(System.currentTimeMillis() - start);
         } finally {
             Context.exit();
-            System.exit(0);
         }
     }
 
@@ -83,6 +88,17 @@ public class Client {
         return cf.newConnection();
     }
 
+    public static javax.jms.Connection makeJmsConnection() throws JMSException {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("host", "localhost");
+        params.put("port", 5445);
+        TransportConfiguration connector = new TransportConfiguration(NettyConnectorFactory.class.getName(), params);
+        HornetQConnectionFactory cf = HornetQJMSClient.createConnectionFactoryWithoutHA(JMSFactoryType.CF, connector);
+        javax.jms.Connection connection = cf.createConnection();
+        connection.start();
+        return connection;
+    }
+
     private static Scriptable chain(Scriptable root, ScriptingSessionFactory... factories) throws RemoteException {
         Scriptable next = root;
         SessionCache cache = new SessionCache();
@@ -94,5 +110,10 @@ public class Client {
         }
 
         return next;
+    }
+
+
+    public static Registry makeRegistry() throws RemoteException {
+        return LocateRegistry.getRegistry("localhost");
     }
 }

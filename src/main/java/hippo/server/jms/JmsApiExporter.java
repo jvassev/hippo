@@ -1,8 +1,7 @@
-package hippo.server.amqp;
+package hippo.server.jms;
 
 import hippo.client.remoting.Request;
 import hippo.client.remoting.Response;
-import hippo.client.remoting.Serializer;
 import hippo.server.ApiExporter;
 import hippo.server.ServerScriptingSession;
 
@@ -10,43 +9,71 @@ import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import com.rabbitmq.client.AMQP.BasicProperties;
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
+import javax.jms.Connection;
+import javax.jms.DeliveryMode;
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.MessageConsumer;
+import javax.jms.MessageListener;
+import javax.jms.MessageProducer;
+import javax.jms.ObjectMessage;
+import javax.jms.Queue;
+import javax.jms.Session;
 
 
-public abstract class AmqpApiExporter extends ApiExporter {
+public abstract class JmsApiExporter extends ApiExporter {
 
     private final Connection connection;
 
     private final ConcurrentMap<String, ServerScriptingSession> sessions;
 
-    private RpcServer server;
+    private Queue requestQueue;
 
-    public AmqpApiExporter(Connection connection) throws IOException {
+    private Queue replyQueue;
+
+    private MessageProducer producer;
+
+    private Session session;
+
+
+    public JmsApiExporter(Connection connection) throws IOException {
         this.connection = connection;
         this.sessions = new ConcurrentHashMap<String, ServerScriptingSession>();
     }
 
     @Override
     public void start() throws IOException {
-        String exchange = getApiDefinition().getName();
-        String queue = getApiDefinition().getName() + ".request";
-        Channel channel = connection.createChannel();
-        channel.exchangeDeclare(exchange, "fanout");
-        channel.queueDeclare(queue, false, false, true, null);
-        channel.queueBind(queue, exchange, "");
+        String apiName = getApiDefinition().getName();
+        try {
+            session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+            requestQueue = session.createQueue(apiName + ".request");
+            replyQueue = session.createQueue(apiName + ".reply");
+            producer = session.createProducer(replyQueue);
+            MessageConsumer consumer = session.createConsumer(requestQueue);
+            consumer.setMessageListener(new MessageListener() {
 
-        server = new RpcServer(channel, queue) {
+                @Override
+                public void onMessage(Message m) {
+                    try {
+                        handleMessage((ObjectMessage) m);
+                    } catch (JMSException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            connection.start();
+        } catch (JMSException e) {
+            throw new IOException(e);
+        }
+    }
 
-            @Override
-            public byte[] handleCall(byte[] requestBody, BasicProperties replyProperties) {
-                Response res = rpc((Request) Serializer.deserialize(requestBody));
-                return Serializer.serialize(res);
-            }
-        };
-
-        server.start();
+    protected void handleMessage(ObjectMessage message) throws JMSException {
+        Request request = (Request) message.getObject();
+        Response response = rpc(request);
+        ObjectMessage result = session.createObjectMessage();
+        result.setObject(response);
+        result.setJMSCorrelationID(message.getJMSCorrelationID());
+        producer.send(result, DeliveryMode.NON_PERSISTENT, Message.DEFAULT_DELIVERY_MODE, 60 * 1000);
     }
 
     private Response rpc(Request request) {
@@ -109,6 +136,10 @@ public abstract class AmqpApiExporter extends ApiExporter {
 
     @Override
     public void stop() {
-        server.terminateMainloop();
+        try {
+            connection.close();
+        } catch (JMSException e) {
+            // ignore
+        }
     }
 }

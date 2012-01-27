@@ -5,21 +5,16 @@ import hippo.client.TypeDefinition;
 import hippo.example.domain.Describer;
 import hippo.server.ApiExporter;
 import hippo.server.ServerScriptingSession;
-import hippo.server.amqp.AmqpApiExporter;
-
-import java.io.IOException;
-import java.rmi.AlreadyBoundException;
+import hippo.server.jms.JmsApiExporter;
 
 public class DescriberServer {
 
-    public static void main(String[] args) throws AlreadyBoundException, IOException {
-        // String server = "localhost";
-        // if (args.length == 1) {
-        // server = args[0];
-        // }
-        // final Registry registry = LocateRegistry.getRegistry(server);
-
-        final ApiExporter service = new AmqpApiExporter(CounterServer.makeConnection()) {
+    public static void main(String[] args) throws Exception {
+        // final ApiExporter service = new
+        // AmqpApiExporter(CounterServer.makeConnection())
+        // final ApiExporter service = new
+        // RmiApiExporter(CounterServer.makeRegistry()) {
+        final ApiExporter service = new JmsApiExporter(CounterServer.makeJmsConnection()) {
 
             @Override
             public ServerScriptingSession makeSession() {
@@ -70,6 +65,7 @@ public class DescriberServer {
         service.defineApi(apiDefinition);
         service.defineClassMapping("Describer", Describer.class);
         service.start();
+        Thread.sleep(100000000);
     }
 
 

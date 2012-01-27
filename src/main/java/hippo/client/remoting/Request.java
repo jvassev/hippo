@@ -1,4 +1,4 @@
-package hippo.client.amqp;
+package hippo.client.remoting;
 
 import hippo.client.Proxy;
 
@@ -25,6 +25,7 @@ public class Request implements Serializable {
 
     public static final int openSession = 7;
 
+    public static final int locateFactory = 8;
 
     private int requestType;
 

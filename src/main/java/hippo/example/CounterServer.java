@@ -6,28 +6,35 @@ import hippo.client.TypeDefinition;
 import hippo.example.domain.Counter;
 import hippo.server.ApiExporter;
 import hippo.server.ServerScriptingSession;
-import hippo.server.amqp.AmqpApiExporter;
+import hippo.server.jms.JmsApiExporter;
 
 import java.io.IOException;
-import java.rmi.AlreadyBoundException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.jms.JMSException;
+
+import org.hornetq.api.core.TransportConfiguration;
+import org.hornetq.api.jms.HornetQJMSClient;
+import org.hornetq.api.jms.JMSFactoryType;
+import org.hornetq.core.remoting.impl.netty.NettyConnectorFactory;
+import org.hornetq.jms.client.HornetQConnectionFactory;
 
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 
 public class CounterServer {
 
-    public static void main(String[] args) throws AlreadyBoundException, IOException {
-        // String server = "localhost";
-        // if (args.length == 1) {
-        // server = args[0];
-        // }
-        // final Registry registry = LocateRegistry.getRegistry(server);
+    public static void main(String[] args) throws Exception {
 
-        final ApiExporter service = new AmqpApiExporter(makeConnection()) {
+        // final ApiExporter service = new AmqpApiExporter(makeConnection())
+        // final ApiExporter service = new RmiApiExporter(makeRegistry()) {
+        final ApiExporter service = new JmsApiExporter(makeJmsConnection()) {
 
-            // final AbstractScriptingSessionFactory service = new
-            // RmiScriptingSessionFactory(registry) {
 
             @Override
             public ServerScriptingSession makeSession() {
@@ -100,6 +107,7 @@ public class CounterServer {
         service.defineApi(apiDefinition);
         service.defineClassMapping("Counter", Counter.class);
         service.start();
+        Thread.sleep(100000000);
     }
 
     public static Connection makeConnection() throws IOException {
@@ -110,6 +118,15 @@ public class CounterServer {
         cf.setPassword("guest");
         cf.setVirtualHost("/");
         return cf.newConnection();
+    }
+
+    public static javax.jms.Connection makeJmsConnection() throws JMSException {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("host", "localhost");
+        params.put("port", 5445);
+        TransportConfiguration connector = new TransportConfiguration(NettyConnectorFactory.class.getName(), params);
+        HornetQConnectionFactory cf = HornetQJMSClient.createConnectionFactoryWithoutHA(JMSFactoryType.CF, connector);
+        return cf.createConnection();
     }
 
     private static ApiDefinition defineApi() {
@@ -127,5 +144,9 @@ public class CounterServer {
 
         apiDefinition.defineVariable("env");
         return apiDefinition;
+    }
+
+    public static Registry makeRegistry() throws RemoteException {
+        return LocateRegistry.getRegistry("localhost");
     }
 }

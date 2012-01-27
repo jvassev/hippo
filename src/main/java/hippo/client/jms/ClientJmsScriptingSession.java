@@ -1,38 +1,48 @@
-package hippo.client.amqp;
+package hippo.client.jms;
 
 import hippo.client.ApiDefinition;
 import hippo.client.Proxy;
 import hippo.client.ScriptingSession;
 import hippo.client.remoting.Request;
 import hippo.client.remoting.Response;
-import hippo.client.remoting.Serializer;
 
-import java.io.IOException;
-import java.util.concurrent.TimeoutException;
+import java.util.UUID;
 
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.RpcClient;
-import com.rabbitmq.client.ShutdownSignalException;
+import javax.jms.DeliveryMode;
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.MessageConsumer;
+import javax.jms.MessageProducer;
+import javax.jms.ObjectMessage;
+import javax.jms.Queue;
+import javax.jms.Session;
 
 
-public class ClientAmqpScriptingSession implements ScriptingSession {
+public class ClientJmsScriptingSession implements ScriptingSession {
 
-    private final Channel channel;
+    private final Session session;
 
     private final String apiName;
-
-    private RpcClient rpc;
 
     private ApiDefinition apiDefinition;
 
     private final String sessionId;
 
-    public ClientAmqpScriptingSession(Channel channel, String apiName, String sessionId) throws IOException {
-        this.channel = channel;
+    private Queue requestQueue;
+
+    private Queue replyQueue;
+
+    private MessageProducer producer;
+
+    public ClientJmsScriptingSession(Session session, String apiName, String sessionId) throws JMSException {
+        this.session = session;
         this.apiName = apiName;
         this.sessionId = sessionId;
 
-        rpc = new RpcClient(channel, apiName, "");
+        requestQueue = session.createQueue(apiName + ".request");
+        replyQueue = session.createQueue(apiName + ".reply");
+
+        producer = session.createProducer(requestQueue);
 
         Request req = makeRequest(Request.openSession);
         doRpcAndHandleError(req);
@@ -44,9 +54,11 @@ public class ClientAmqpScriptingSession implements ScriptingSession {
 
         doRpcAndHandleError(req);
         try {
-            rpc.close();
-        } catch (IOException e) {
-            // ignore
+            producer.close();
+            session.close();
+        } catch (JMSException e) {
+            // logger.error("", e);
+            e.printStackTrace();
         }
     }
 
@@ -99,9 +111,20 @@ public class ClientAmqpScriptingSession implements ScriptingSession {
     }
 
 
-    private Response rpc(Request request) throws ShutdownSignalException, IOException, TimeoutException {
-        byte[] result = rpc.primitiveCall(Serializer.serialize(request));
-        return (Response) Serializer.deserialize(result);
+    private Response rpc(Request request) throws JMSException {
+        String correlationId = UUID.randomUUID().toString();
+
+        ObjectMessage message = session.createObjectMessage();
+        message.setObject(request);
+        message.setJMSCorrelationID(correlationId);
+        message.setJMSReplyTo(replyQueue);
+
+
+        producer.send(message, DeliveryMode.NON_PERSISTENT, Message.DEFAULT_DELIVERY_MODE, 60 * 1000);
+        MessageConsumer consumer = session.createConsumer(replyQueue, "JMSCorrelationID = '" + correlationId + "'");
+        ObjectMessage result = (ObjectMessage) consumer.receive();
+        consumer.close();
+        return (Response) result.getObject();
     }
 
     @Override
@@ -135,11 +158,7 @@ public class ClientAmqpScriptingSession implements ScriptingSession {
         Response response;
         try {
             response = rpc(r);
-        } catch (ShutdownSignalException e) {
-            return handleRpcException(e);
-        } catch (IOException e) {
-            return handleRpcException(e);
-        } catch (TimeoutException e) {
+        } catch (JMSException e) {
             return handleRpcException(e);
         }
 

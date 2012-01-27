@@ -1,4 +1,4 @@
-package hippo.client.amqp;
+package hippo.client.remoting;
 
 import java.io.Serializable;
 
